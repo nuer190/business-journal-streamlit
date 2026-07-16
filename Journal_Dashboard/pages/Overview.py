@@ -410,7 +410,7 @@ with col1:
 
         major_chart(major_df),
 
-        use_container_width=True
+        width="stretch"
 
     )
 
@@ -430,7 +430,7 @@ with col2:
 
         ),
 
-        use_container_width=True
+        width="stretch"
 
     )
 
@@ -456,7 +456,7 @@ with col1:
 
         ),
 
-        use_container_width=True
+        width="stretch"
 
     )
 
@@ -476,7 +476,7 @@ with col2:
 
         ),
 
-        use_container_width=True
+        width="stretch"
 
     )
 
@@ -486,15 +486,20 @@ with col2:
 
 def show_chart(df, chart_func, title=None):
 
+    if df is None:
+        return
+
     if df.empty:
         return
 
-    if title:
-        st.subheader(title)
+    if "Total" in df.columns and df["Total"].sum() == 0:
+        return
+
+    st.subheader(title)
 
     st.plotly_chart(
         chart_func(df),
-        use_container_width=True
+        width="stretch"
     )
 
 col1, col2 = st.columns(2)
@@ -631,7 +636,7 @@ if compare_mode:
 
         ),
 
-        use_container_width=True
+        width="stretch"
 
     )
 
@@ -786,7 +791,7 @@ with col1:
 
         ),
 
-        use_container_width=True
+        width="stretch"
 
     )
 
@@ -818,7 +823,7 @@ with col2:
 
         ),
 
-        use_container_width=True
+        width="stretch"
 
     )
     
@@ -882,7 +887,7 @@ st.plotly_chart(
 
     ),
 
-    use_container_width=True
+    width="stretch"
 
 )
 
