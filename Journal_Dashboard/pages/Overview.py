@@ -512,8 +512,7 @@ with col1:
     show_chart(
         rank_source_df,
         rank_chart,
-        "Rank Distribution",
-        "rank_distribution"
+        "Rank Distribution"
     )
     
 
@@ -524,8 +523,7 @@ with col2:
     show_chart(
         area_top,
         top_area_chart,
-        "Top 10 Area",
-        "top_area"
+        "Top 10 Area"
     )
 
 st.divider()
@@ -533,8 +531,7 @@ st.divider()
 show_chart(
     major_source_df,
     database_summary_chart,
-    "Database Coverage by Major Group",
-    "database_major"
+    "Database Coverage by Major Group"
 )
 
 
