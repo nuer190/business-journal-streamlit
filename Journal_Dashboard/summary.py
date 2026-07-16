@@ -50,36 +50,48 @@ def _summary(df, group_cols):
 
     journal = _journal_col(df)
 
+    temp = df.copy()
+
+    # -----------------------------
+    # Remove blank / NaN
+    # -----------------------------
+    for col in group_cols:
+
+        temp = temp[
+            temp[col].notna() &
+            (temp[col].astype(str).str.strip() != "")
+        ]
+
     temp = (
 
-        df
+        temp
 
         .drop_duplicates(
-
+            
             subset=group_cols + [journal]
-
+            
         )
 
         .groupby(
-
+            
             group_cols,
-
+            
             as_index=False
-
+            
         )
 
         .agg(
-
+            
             Total=(journal, "count")
-
+            
         )
 
         .sort_values(
-
+            
             "Total",
-
+            
             ascending=False
-
+            
         )
 
         .reset_index(drop=True)
@@ -447,58 +459,37 @@ def major_source_summary(area):
 
     journal = _journal_col(area)
 
+    temp = area.copy()
+
+    temp = temp[
+        temp["Major Group"].notna() &
+        (temp["Major Group"].astype(str).str.strip() != "")
+    ]
+
+    if temp.empty:
+        return pd.DataFrame(columns=["Major Group", "Source", "Total"])
+
     return (
-
-        area
-
+        temp
         .drop_duplicates(
-
-            subset=[
-
-                "Major Group",
-
-                "Source",
-
-                journal
-
-            ]
-
+            subset=["Major Group", "Source", journal]
         )
-
         .groupby(
-
-            [
-
-                "Major Group",
-
-                "Source"
-
-            ],
-
+            ["Major Group", "Source"],
             as_index=False
-
+            
         )
-
+        
         .agg(
-
-            Total=(journal,"count")
-
+            Total=(journal, "count")
         )
-
+        
         .sort_values(
-
-            [
-
-                "Major Group",
-
-                "Source"
-
-            ]
-
+            ["Major Group", "Source"]
         )
-
+        
         .reset_index(drop=True)
-
+        
     )
 
 

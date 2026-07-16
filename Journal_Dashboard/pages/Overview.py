@@ -233,6 +233,41 @@ with col5:
 # QUICK SUMMARY
 # ==========================================================
 
+def safe_plot(df, chart_func, title=None, category=None):
+
+    if df is None:
+        return
+
+    if df.empty:
+        return
+
+    if "Total" in df.columns:
+        if df["Total"].fillna(0).sum() == 0:
+            return
+
+    if category is not None:
+
+        if category not in df.columns:
+            return
+
+        temp = (
+            df[category]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
+
+        if temp.eq("").all():
+            return
+
+    if title:
+        st.subheader(title)
+
+    st.plotly_chart(
+        chart_func(df),
+        width="stretch"
+    )
+
 st.divider()
 
 left,right = st.columns([2,1])
@@ -404,14 +439,11 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-    st.subheader("Major Group")
-
-    st.plotly_chart(
-
-        major_chart(major_df),
-
-        width="stretch"
-
+    safe_plot(
+        major_df,
+        major_chart,
+        "Major Group",
+        "Major Group"
     )
 
 # ----------------------------------------------------------
@@ -420,18 +452,11 @@ with col1:
 
 with col2:
 
-    st.subheader("Area Group")
-
-    st.plotly_chart(
-
-        area_group_chart(
-
-            area_group_df.head(20)
-
-        ),
-
-        width="stretch"
-
+    safe_plot(
+        area_group_df.head(20),
+        area_group_chart,
+        "Area Group",
+        "Area Group"
     )
 
 # ==========================================================
@@ -446,18 +471,11 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-    st.subheader("Top Area")
-
-    st.plotly_chart(
-
-        area_chart(
-
-            area_df.head(20)
-
-        ),
-
-        width="stretch"
-
+    safe_plot(
+        area_df.head(20),
+        area_chart,
+        "Top Area",
+        "Area"
     )
 
 # ----------------------------------------------------------
@@ -466,20 +484,12 @@ with col1:
 
 with col2:
 
-    st.subheader("Database Distribution")
-
-    st.plotly_chart(
-
-        database_chart(
-
-            source_df
-
-        ),
-
-        width="stretch"
-
+    safe_plot(
+        source_df,
+        database_chart,
+        "Database Distribution",
+        "Source"
     )
-
 # ==========================================================
 # ROW 3
 # ==========================================================
@@ -509,10 +519,11 @@ col1, col2 = st.columns(2)
 # ----------------------------------------------------------
 
 with col1:
-    show_chart(
+    safe_plot(
         rank_source_df,
         rank_chart,
-        "Rank Distribution"
+        "Rank Distribution",
+        "Rank"
     )
     
 
@@ -520,18 +531,20 @@ with col2:
 
     area_top = top_area(area_filter, 10)
 
-    show_chart(
+    safe_plot(
         area_top,
         top_area_chart,
-        "Top 10 Area"
+        "Top 10 Area",
+        "Area"
     )
 
 st.divider()
 
-show_chart(
+safe_plot(
     major_source_df,
     database_summary_chart,
-    "Database Coverage by Major Group"
+    "Database Coverage by Major Group",
+    "Major Group"
 )
 
 
@@ -770,26 +783,13 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-    st.subheader("Top Publisher")
+    publisher_df = top_publisher(master_filter, 15)
 
-    publisher_df = top_publisher(
-
-        master_filter,
-
-        n=15
-
-    )
-
-    st.plotly_chart(
-
-        publisher_chart(
-
-            publisher_df
-
-        ),
-
-        width="stretch"
-
+    safe_plot(
+        publisher_df,
+        publisher_chart,
+        "Top Publisher",
+        "Publisher"
     )
 
 # ==========================================================
@@ -798,30 +798,19 @@ with col1:
 
 with col2:
 
-    st.subheader("Top Rank")
+    rank_top = top_rank(area_filter, 15)
 
-    rank_top = top_rank(
-
-        area_filter,
-
-        n=15
-
-    )
-
-    st.plotly_chart(
-
-        horizontal_bar(
-
-            rank_top,
-
+    safe_plot(
+        rank_top,
+        lambda df: horizontal_bar(
+            df,
             x="Total",
-
+            
             y="Rank"
-
+            
         ),
-
-        width="stretch"
-
+        "Top Rank",
+        "Rank"
     )
     
 # ==========================================================
