@@ -379,12 +379,16 @@ def source_summary(area):
 
 def rank_summary(area):
 
+    temp = area.copy()
+
+    temp = temp[
+        temp["Rank"].notna() &
+        (temp["Rank"].astype(str).str.strip() != "")
+    ]
+
     return _summary(
-
-        area,
-
-        ["Source","Rank"]
-
+        temp,
+        ["Source", "Rank"]
     )
 
 
@@ -413,26 +417,25 @@ def top_area(
 # TOP RANK
 # ==========================================================
 
-def top_rank(
+def top_rank(area, n=20):
 
-    area,
+    temp = area.copy()
 
-    n=20
-
-):
+    temp = temp[
+        temp["Rank"].notna() &
+        (temp["Rank"].astype(str).str.strip() != "")
+    ]
 
     return (
-
+        
         _summary(
-
-            area,
-
+            temp,
             ["Rank"]
-
+            
         )
-
+        
         .head(n)
-
+        
     )
 
 
