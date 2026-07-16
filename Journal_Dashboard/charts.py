@@ -3,7 +3,7 @@
 # Journal Dashboard Chart Library
 # ==========================================================
 
-from streamlit import st
+from turtle import st
 
 import plotly.express as px
 import plotly.graph_objects as go
@@ -362,15 +362,3 @@ def rank_chart(df):
 
     )
     
-def show_chart(df, chart_func, title=None):
-
-    if df.empty:
-        return
-
-    if title:
-        st.subheader(title)
-
-    st.plotly_chart(
-        chart_func(df),
-        use_container_width=True
-    )
