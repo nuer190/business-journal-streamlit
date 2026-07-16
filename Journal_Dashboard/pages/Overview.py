@@ -482,7 +482,7 @@ with col1:
         area_chart,
         "Top Area",
         "Area",
-        "top_rank"
+        "top_area_chart"
     )
 
 # ----------------------------------------------------------
@@ -545,7 +545,7 @@ with col2:
         top_area_chart,
         "Top 10 Area",
         "Area",
-        "top_area"
+        "top_10_area"
     )
 
 st.divider()
@@ -823,7 +823,7 @@ with col2:
         ),
         "Top Rank",
         "Rank",
-        "top_rank"
+        "top_rank_chart"
     )
     
 # ==========================================================
