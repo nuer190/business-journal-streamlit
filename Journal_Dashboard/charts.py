@@ -3,7 +3,7 @@
 # Journal Dashboard Chart Library
 # ==========================================================
 
-from turtle import st
+from streamlit import st
 
 import plotly.express as px
 import plotly.graph_objects as go
