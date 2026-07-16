@@ -20,37 +20,22 @@ from theme import (
 def style(fig):
 
     fig.update_layout(
-
-        template="plotly_white",
-
-        height=FIG_HEIGHT,
-
-        font_family=FONT,
-
-        margin=dict(
-
-            l=20,
-
-            r=20,
-
-            t=50,
-
-            b=20
-
-        ),
-
-        legend_title=None
         
-
+        template="plotly_white",
+        
+        height=FIG_HEIGHT,
+        
+        font_family=FONT,
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend_title_text="",
+        title_text=""
     )
-    from theme import CHART_LAYOUT
 
-    fig.update_layout(
+    fig.update_xaxes(title_text="")
+    fig.update_yaxes(title_text="")
 
-    **CHART_LAYOUT
+    fig.update_annotations(text="")
 
-)
-    
     return fig
 
 
