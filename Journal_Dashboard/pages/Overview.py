@@ -491,67 +491,34 @@ col1, col2 = st.columns(2)
 # ----------------------------------------------------------
 
 with col1:
-
-    st.subheader("Rank Distribution")
-
-    st.plotly_chart(
-
-        rank_chart(
-
-            rank_source_df
-
-        ),
-
-        use_container_width=True
-
+    show_chart(
+        rank_source_df,
+        rank_chart,
+        "Rank Distribution"
     )
-
-# ----------------------------------------------------------
-# Top Area
-# ----------------------------------------------------------
+    
 
 with col2:
-
-    st.subheader("Top 10 Area")
+    
 
     area_top = top_area(
-
+        
         area_filter,
-
         10
-
     )
 
-    st.plotly_chart(
-
-        top_area_chart(
-
-            area_top
-
-        ),
-
-        use_container_width=True
-
+    show_chart(
+        area_top,
+        top_area_chart,
+        "Top 10 Area"
     )
-
-# ==========================================================
-# DATABASE SUMMARY
-# ==========================================================
 
 st.divider()
 
-st.subheader("Database Coverage by Major Group")
-
-st.plotly_chart(
-
-    database_summary_chart(
-
-        major_source_df
-
-    ),
-
-    use_container_width=True
-
+show_chart(
+    major_source_df,
+    database_summary_chart,
+    "Database Coverage by Major Group"
 )
 
 
