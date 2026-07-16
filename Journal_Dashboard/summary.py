@@ -573,58 +573,63 @@ def rank_source_summary(area):
 
     journal = _journal_col(area)
 
+    temp = area.copy()
+
+    temp = temp[
+        temp["Rank"].notna() &
+        (temp["Rank"].astype(str).str.strip() != "")
+    ]
+
     return (
-
-        area
-
+        temp
         .drop_duplicates(
-
+            
             subset=[
-
+                
                 "Rank",
-
+                
                 "Source",
-
+                
                 journal
-
+                
             ]
-
+            
         )
-
+        
         .groupby(
-
+            
             [
-
+                
                 "Rank",
-
+                
                 "Source"
-
+                
             ],
-
+            
             as_index=False
-
+            
         )
-
+        
         .agg(
-
+            
             Total=(journal,"count")
-
+            
         )
-
+        
         .sort_values(
-
+            
             [
-
+                
                 "Source",
-
+                
                 "Rank"
-
+                
             ]
-
+            
         )
-
+        
         .reset_index(drop=True)
-
+        
     )
 
 
