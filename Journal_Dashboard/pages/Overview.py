@@ -233,19 +233,22 @@ with col5:
 # QUICK SUMMARY
 # ==========================================================
 
-def safe_plot(df, chart_func, title=None, category=None):
+def safe_plot(
+    df,
+    chart_func,
+    title=None,
+    category=None,
+    key=None
+):
 
-    if df is None:
-        return
-
-    if df.empty:
+    if df is None or df.empty:
         return
 
     if "Total" in df.columns:
         if df["Total"].fillna(0).sum() == 0:
             return
 
-    if category is not None:
+    if category:
 
         if category not in df.columns:
             return
@@ -265,7 +268,8 @@ def safe_plot(df, chart_func, title=None, category=None):
 
     st.plotly_chart(
         chart_func(df),
-        width="stretch"
+        width="stretch",
+        key=key          # <-- เพิ่มตรงนี้
     )
 
 st.divider()
@@ -443,7 +447,8 @@ with col1:
         major_df,
         major_chart,
         "Major Group",
-        "Major Group"
+        "Major Group",
+        "major_chart"
     )
 
 # ----------------------------------------------------------
@@ -456,7 +461,8 @@ with col2:
         area_group_df.head(20),
         area_group_chart,
         "Area Group",
-        "Area Group"
+        "Area Group",
+        "area_group_chart"
     )
 
 # ==========================================================
@@ -475,7 +481,8 @@ with col1:
         area_df.head(20),
         area_chart,
         "Top Area",
-        "Area"
+        "Area",
+        "top_rank"
     )
 
 # ----------------------------------------------------------
@@ -488,7 +495,8 @@ with col2:
         source_df,
         database_chart,
         "Database Distribution",
-        "Source"
+        "Source",
+        "database_chart"
     )
 # ==========================================================
 # ROW 3
@@ -523,7 +531,8 @@ with col1:
         rank_source_df,
         rank_chart,
         "Rank Distribution",
-        "Rank"
+        "Rank",
+        "rank_distribution"
     )
     
 
@@ -535,7 +544,8 @@ with col2:
         area_top,
         top_area_chart,
         "Top 10 Area",
-        "Area"
+        "Area",
+        "top_area"
     )
 
 st.divider()
@@ -544,7 +554,8 @@ safe_plot(
     major_source_df,
     database_summary_chart,
     "Database Coverage by Major Group",
-    "Major Group"
+    "Major Group",
+    "database_major"
 )
 
 
@@ -789,7 +800,8 @@ with col1:
         publisher_df,
         publisher_chart,
         "Top Publisher",
-        "Publisher"
+        "Publisher",
+        "top_publisher"
     )
 
 # ==========================================================
@@ -810,7 +822,8 @@ with col2:
             
         ),
         "Top Rank",
-        "Rank"
+        "Rank",
+        "top_rank"
     )
     
 # ==========================================================
