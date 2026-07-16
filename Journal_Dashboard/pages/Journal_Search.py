@@ -332,7 +332,7 @@ if len(master_current):
 
         def status_label(name, value):
 
-            c1, c2 = st.columns([0.1, 1])
+            c1, c2 = st.columns([0.15, 1])
 
             with c1:
                 st.write(f"**{name}**")
