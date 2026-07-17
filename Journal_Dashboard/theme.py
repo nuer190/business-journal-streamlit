@@ -33,13 +33,13 @@ FIG_MARGIN = dict(
 
 DATABASE_COLORS = {
 
-    "ABDC": "#2196F3",       # Blue
+    "ABDC": "#4F80C0",       # Blue
 
-    "Scopus": "#4CAF50",     # Green
+    "Scopus": "#73C088",     # Green
 
-    "Scimago": "#FF9800",    # Orange
+    "Scimago": "#FFC273",    # Orange
 
-    "AJG": "#F44336"         # Red
+    "AJG": "#8A49A1"         # Red
 
 }
 
@@ -75,13 +75,13 @@ KPI_COLORS = {
 
     "Journal":"#37474F",
 
-    "ABDC":"#2196F3",
+    "ABDC":"#4F80C0",
 
-    "Scopus":"#4CAF50",
+    "Scopus":"#73C088",
 
-    "Scimago":"#FF9800",
+    "Scimago":"#FFC273",
 
-    "AJG":"#F44336"
+    "AJG":"#8A49A1"
 
 }
 

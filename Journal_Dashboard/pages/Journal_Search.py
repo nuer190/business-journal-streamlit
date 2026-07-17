@@ -9,6 +9,14 @@ import plotly.express as px
 from config import *
 from utils import load_data
 
+from theme import (
+    apply_theme,
+    DATABASE_COLORS,
+    RANK_COLORS,
+    MAJOR_COLORS,
+    CHART_LAYOUT
+)
+
 # ==========================================================
 # LOAD DATA
 # ==========================================================
@@ -451,12 +459,12 @@ fig = px.pie(
     coverage,
     names="Source",
     values="Total",
-    hole=0.55
+    hole=0.55,
+    color="Source",
+    color_discrete_map=DATABASE_COLORS
 )
 
-fig.update_layout(
-    height=450
-)
+fig.update_layout(**CHART_LAYOUT)
 
 st.plotly_chart(
     fig,
@@ -475,12 +483,11 @@ fig = px.bar(
     y="Total",
     color="Source",
     barmode="group",
-    text="Total"
+    text="Total",
+    color_discrete_map=DATABASE_COLORS
 )
 
-fig.update_layout(
-    height=500
-)
+fig.update_layout(**CHART_LAYOUT)
 
 st.plotly_chart(
     fig,
@@ -498,13 +505,11 @@ fig = px.bar(
     x="Major Group",
     y="Total",
     color="Major Group",
-    text="Total"
+    text="Total",
+    color_discrete_map=MAJOR_COLORS
 )
 
-fig.update_layout(
-    height=450,
-    showlegend=False
-)
+fig.update_layout(**CHART_LAYOUT)
 
 st.plotly_chart(
     fig,
