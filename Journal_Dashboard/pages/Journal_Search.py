@@ -7,12 +7,11 @@ import pandas as pd
 import plotly.express as px
 
 from config import *
+from utils import load_data
 
-from utils import (
-    load_data,
-    search_journal,
-    get_journal_detail
-)
+# ==========================================================
+# LOAD DATA
+# ==========================================================
 
 master, area = load_data()
 
@@ -21,173 +20,89 @@ master, area = load_data()
 # ==========================================================
 
 st.set_page_config(
-
     page_title="Journal Search",
-
     page_icon="🔍",
-
     layout="wide"
-
 )
 
 st.title("🔍 Journal Search")
-
-st.caption(
-
-    "Search Journal Information"
-
-)
+st.caption("Search Journal Information")
 
 # ==========================================================
-# SEARCH TYPE
+# SEARCH OPTION
 # ==========================================================
+
+SEARCH_COLUMN = {
+    "Journal Title": "Journal Title",
+    "ISSN": "ISSN",
+    "ISSNOnline": "ISSNOnline",
+    "Publisher": "Publisher"
+}
 
 search_type = st.radio(
-
     "Search by",
-
-    [
-
-        "Journal Title",
-
-        "ISSN",
-
-        "ISSNOnline",
-
-        "Publisher"
-
-    ],
-
+    list(SEARCH_COLUMN.keys()),
     horizontal=True
-
 )
-
-# ==========================================================
-# SEARCH BOX
-# ==========================================================
 
 keyword = st.text_input(
-
     "Keyword",
-
     placeholder="Type here..."
-
 )
 
 # ==========================================================
-# SEARCH
+# FILTER DATA
 # ==========================================================
 
 result = master.copy()
 
-if keyword != "":
+if keyword.strip():
 
-    keyword = keyword.strip()
+    column = SEARCH_COLUMN[search_type]
 
-    if search_type == "Journal Title":
-
-        result = result[
-
-            result["Journal Title"]
-
-            .fillna("")
-
-            .str.contains(
-
-                keyword,
-
-                case=False,
-
-                na=False
-
-            )
-
-        ]
-
-    elif search_type == "ISSN":
-
-        result = result[
-
-            result["ISSN"]
-
-            .fillna("")
-
-            .str.contains(
-
-                keyword,
-
-                case=False,
-
-                na=False
-
-            )
-
-        ]
-
-    elif search_type == "ISSNOnline":
-
-        result = result[
-
-            result["ISSNOnline"]
-
-            .fillna("")
-
-            .str.contains(
-
-                keyword,
-
-                case=False,
-
-                na=False
-
-            )
-
-        ]
-
-    elif search_type == "Publisher":
-
-        result = result[
-
-            result["Publisher"]
-
-            .fillna("")
-
-            .str.contains(
-
-                keyword,
-
-                case=False,
-
-                na=False
-
-            )
-
-        ]
+    result = result[
+        result[column]
+        .fillna("")
+        .astype(str)
+        .str.contains(
+            keyword.strip(),
+            case=False,
+            na=False
+        )
+    ]
 
 # ==========================================================
 # RESULT
 # ==========================================================
 
-st.write(
+st.write(f"Found : **{len(result):,}** Journal")
 
-    f"Found : **{len(result):,}** Journal"
+# ==========================================================
+# NO RESULT
+# ==========================================================
 
-)
+if result.empty:
+
+    if keyword.strip():
+        st.info("No journal found.")
+
+    st.stop()
 
 # ==========================================================
 # SELECT JOURNAL
 # ==========================================================
 
-journal_name = st.selectbox(
-
-    "Select Journal",
-
+journal_list = (
     result["Journal Title"]
-
+    .dropna()
     .sort_values()
-
     .unique()
+)
 
+journal_name = st.selectbox(
+    "Select Journal",
+    journal_list,
+    index=0
 )
 
 # ==========================================================
@@ -195,71 +110,94 @@ journal_name = st.selectbox(
 # ==========================================================
 
 master_current = master[
-
-    master["Journal Title"]
-
-    == journal_name
-
+    master["Journal Title"] == journal_name
 ]
 
 area_current = area[
-
-    area["Journal Title"]
-
-    == journal_name
-
+    area["Journal Title"] == journal_name
 ]
 
+# กันพลาดอีกชั้น
+if master_current.empty:
+    st.stop()
+
+# ใช้ row ตัวเดียวทั้งไฟล์
+row = master_current.iloc[0]
+
+# ==========================================================
+# HELPER FUNCTIONS
+# ==========================================================
+
+def display_value(data):
+    """
+    แสดง N/A หากข้อมูลว่าง
+    """
+    if pd.isna(data):
+        return "N/A"
+
+    data = str(data).strip()
+
+    if data == "":
+        return "N/A"
+
+    if data.lower() in ["nan", "none", "na", "n/a"]:
+        return "N/A"
+
+    return data
+
+
+def check_available(data):
+    """
+    ตรวจสอบว่ามีข้อมูลหรือไม่
+    """
+    return display_value(data) != "N/A"
+
+
+def status_badge(name, data):
+
+    c1, c2 = st.columns([1, 1.4])
+
+    with c1:
+        st.write(f"**{name}**")
+
+    with c2:
+        if check_available(data):
+            st.badge("Available", color="green")
+        else:
+            st.badge("Not Available", color="red")
+            
 # ==========================================================
 # QUICK INFO
 # ==========================================================
 
-if len(master_current):
+st.divider()
 
-    row = master_current.iloc[0]
+c1, c2, c3, c4 = st.columns(4)
 
-    c1,c2,c3,c4 = st.columns(4)
+with c1:
+    st.metric(
+        "Publisher",
+        display_value(row["Publisher"])
+    )
 
-    with c1:
+with c2:
+    st.metric(
+        "ISSN",
+        display_value(row["ISSN"])
+    )
 
-        st.metric(
+with c3:
+    st.metric(
+        "EISSN",
+        display_value(row["ISSNOnline"])
+    )
 
-            "Publisher",
+with c4:
+    st.metric(
+        "ABDC",
+        display_value(row["2025 rating"])
+    )
 
-            row["Publisher"]
-
-        )
-
-    with c2:
-
-        st.metric(
-
-            "ISSN",
-
-            row["ISSN"]
-
-        )
-
-    with c3:
-
-        st.metric(
-
-            "EISSN",
-
-            row["ISSNOnline"]
-
-        )
-
-    with c4:
-
-        st.metric(
-
-            "ABDC",
-
-            row["2025 rating"]
-
-        )
-    
 # ==========================================================
 # JOURNAL PROFILE
 # ==========================================================
@@ -268,546 +206,347 @@ st.divider()
 
 st.header("📖 Journal Profile")
 
-def check_available(value):
+left, right = st.columns(2)
 
-    if pd.isna(value):
-        return False
-
-    value = str(value).strip()
-
-    if value == "":
-        return False
-
-    if value.lower() in ["nan", "none", "n/a", "na"]:
-        return False
-
-    return True
-
-if len(master_current):
-
-    row = master_current.iloc[0]
-
-    c1,c2 = st.columns(2)
-
-    # ======================================================
-    # BASIC INFORMATION
-    # ======================================================
-
-    with c1:
-
-        st.subheader("Journal Information")
-
-        st.write(f"**Journal Title** : {row['Journal Title']}")
-
-        st.write(f"**Publisher** : {row['Publisher']}")
-
-        st.write(f"**ISSN** : {row['ISSN']}")
-
-        st.write(f"**EISSN** : {row['ISSNOnline']}")
-
-        st.write(f"**Year Inception** : {row['Year Inception']}")
-
-        st.write(f"**Area** : {row['ABDC Area']}")
-
-    # ======================================================
-    # DATABASE
-    # ======================================================
-
-    with c2:
-
-        st.subheader("Database Coverage")
-
-
-        abdc = row["2025 rating"]
-
-        scopus = row["Scopus_Title"]
-
-        scimago = row["Scimago_Title"]
-
-        ajg = row["ASG_Title"]
-
-
-        st.write(f"**ABDC Rank :** {abdc}")
-
-
-        def status_label(name, value):
-
-            c1, c2 = st.columns([0.15, 1])
-
-            with c1:
-                st.write(f"**{name}**")
-
-            with c2:
-                if check_available(value):
-                    st.badge("Available", color="green")
-                else:
-                    st.badge("Not Available", color="red")
-
-
-
-        status_label(
-            "Scopus",
-            scopus
-        )
-
-
-        status_label(
-            "Scimago",
-            scimago
-        )
-
-
-        status_label(
-            "AJG",
-            ajg
-        )
-        
 # ==========================================================
-# DATABASE DETAIL
+# BASIC INFORMATION
+# ==========================================================
+
+with left:
+
+    st.subheader("Journal Information")
+
+    journal_info = {
+        "Journal Title": "Journal Title",
+        "Publisher": "Publisher",
+        "ISSN": "ISSN",
+        "EISSN": "ISSNOnline",
+        "Year Inception": "Year Inception",
+        "ABDC Area": "ABDC Area"
+    }
+
+    for label, column in journal_info.items():
+
+        st.write(
+            f"**{label} :** {display_value(row[column])}"
+        )
+
+# ==========================================================
+# DATABASE COVERAGE
+# ==========================================================
+
+with right:
+
+    st.subheader("Database Coverage")
+
+    st.write(
+        f"**ABDC Rank :** {display_value(row['2025 rating'])}"
+    )
+
+    status_badge(
+        "Scopus",
+        row["Scopus_Title"]
+    )
+
+    status_badge(
+        "Scimago",
+        row["Scimago_Title"]
+    )
+
+    status_badge(
+        "AJG",
+        row["ASG_Title"]
+    )
+
+# ==========================================================
+# DATABASE INFORMATION
 # ==========================================================
 
 st.divider()
 
 st.header("🗂 Database Information")
 
-col1,col2,col3 = st.columns(3)
+tab1, tab2, tab3 = st.columns(3)
 
 # ==========================================================
 # SCOPUS
 # ==========================================================
 
-with col1:
+with tab1:
 
     st.subheader("Scopus")
 
-    st.write(
+    scopus_info = {
+        "Title": "Scopus_Title",
+        "ISSN": "Scopus_ISSN",
+        "EISSN": "Scopus_EISSN",
+        "Status": "Active or Inactive",
+        "Source Type": "Source Type"
+    }
 
-        f"**Title** : {row['Scopus_Title']}"
+    for label, column in scopus_info.items():
 
-    )
-
-    st.write(
-
-        f"**ISSN** : {row['Scopus_ISSN']}"
-
-    )
-
-    st.write(
-
-        f"**EISSN** : {row['Scopus_EISSN']}"
-
-    )
-
-    st.write(
-
-        f"**Status** : {row['Active or Inactive']}"
-
-    )
-
-    st.write(
-
-        f"**Source Type** : {row['Source Type']}"
-
-    )
+        st.write(
+            f"**{label} :** {display_value(row[column])}"
+        )
 
 # ==========================================================
 # SCIMAGO
 # ==========================================================
 
-with col2:
+with tab2:
 
     st.subheader("Scimago")
 
-    st.write(
+    scimago_info = {
+        "Title": "Scimago_Title",
+        "ISSN": "Scimago_ISSN",
+        "EISSN": "Scimago_EISSN",
+        "Best Quartile": "SJR Best Quartile"
+    }
 
-        f"**Title** : {row['Scimago_Title']}"
+    for label, column in scimago_info.items():
 
-    )
-
-    st.write(
-
-        f"**ISSN** : {row['Scimago_ISSN']}"
-
-    )
-
-    st.write(
-
-        f"**EISSN** : {row['Scimago_EISSN']}"
-
-    )
-
-    st.write(
-
-        f"**Best Quartile** : {row['SJR Best Quartile']}"
-
-    )
+        st.write(
+            f"**{label} :** {display_value(row[column])}"
+        )
 
 # ==========================================================
 # AJG
 # ==========================================================
 
-with col3:
+with tab3:
 
     st.subheader("AJG")
 
-    st.write(
+    ajg_info = {
+        "Title": "ASG_Title",
+        "ISSN": "ASG_ISSN",
+        "Rank": "AJG 2024"
+    }
 
-        f"**Title** : {row['ASG_Title']}"
+    for label, column in ajg_info.items():
 
-    )
-
-    st.write(
-
-        f"**ISSN** : {row['ASG_ISSN']}"
-
-    )
-
-    st.write(
-
-        f"**Rank** : {row['AJG 2024']}"
-
-    )
-
+        st.write(
+            f"**{label} :** {display_value(row[column])}"
+        )
+        
 # ==========================================================
-# AREA SUMMARY
+# AREA DATA CHECK
 # ==========================================================
 
 st.divider()
 
-st.header("🌍 Area Summary")
+st.header("🌍 Journal Area Analysis")
+
+if area_current.empty:
+
+    st.warning("No area information available.")
+
+    st.stop()
+
+# ==========================================================
+# SUMMARY DATA
+# ==========================================================
 
 summary = (
-
     area_current
-
     .groupby(
-
-        [
-
-            "Major Group",
-
-            "Area Group"
-
-        ]
-
+        ["Major Group", "Area Group"],
+        dropna=False
     )
-
     .size()
-
     .reset_index(name="Total")
-
 )
 
-st.dataframe(
-
-    summary,
-
-    use_container_width=True,
-
-    height=300
-
-)
-
-# ==========================================================
-# RANK SUMMARY
-# ==========================================================
-
-st.divider()
-
-st.header("🏆 Rank Summary")
-
-rank = (
-
-    area_current
-
-    [
-
-        [
-
-            "Source",
-
-            "Area",
-
-            "Rank"
-
-        ]
-
+rank_summary = (
+    area_current[
+        ["Source", "Area", "Rank"]
     ]
-
+    .copy()
 )
-
-st.dataframe(
-
-    rank,
-
-    use_container_width=True,
-
-    height=350
-
-)
-
-# ==========================================================
-# SOURCE SUMMARY
-# ==========================================================
-
-st.divider()
-
-st.header("Database Coverage")
 
 coverage = (
-
     area_current
-
     .groupby(
-
-        "Source"
-
+        "Source",
+        dropna=False
     )
-
     .size()
-
-    .reset_index(name="Area")
-
-)
-
-st.dataframe(
-
-    coverage,
-
-    use_container_width=True
-
-)
-
-# ==========================================================
-# DATABASE COVERAGE
-# ==========================================================
-
-st.divider()
-
-st.header("📚 Database Coverage")
-
-coverage = (
-
-    area_current
-
-    .groupby(
-
-        "Source"
-
-    )
-
-    .size()
-
     .reset_index(name="Total")
-
 )
+
+rank_distribution = (
+    area_current
+    .groupby(
+        ["Source", "Rank"],
+        dropna=False
+    )
+    .size()
+    .reset_index(name="Total")
+)
+
+major_group = (
+    area_current
+    .groupby(
+        "Major Group",
+        dropna=False
+    )
+    .size()
+    .reset_index(name="Total")
+)
+
+area_group = (
+    area_current
+    .groupby(
+        "Area Group",
+        dropna=False
+    )
+    .size()
+    .reset_index(name="Total")
+)
+
+# ==========================================================
+# TABLE : AREA SUMMARY
+# ==========================================================
+
+st.subheader("📄 Area Summary")
+
+st.dataframe(
+    summary,
+    use_container_width=True,
+    height=300
+)
+
+# ==========================================================
+# TABLE : RANK SUMMARY
+# ==========================================================
+
+st.subheader("🏆 Rank Summary")
+
+st.dataframe(
+    rank_summary,
+    use_container_width=True,
+    height=350
+)
+
+# ==========================================================
+# TABLE : DATABASE COVERAGE
+# ==========================================================
+
+st.subheader("📚 Database Coverage")
+
+st.dataframe(
+    coverage,
+    use_container_width=True
+)
+
+# ==========================================================
+# PIE CHART
+# ==========================================================
+
+st.subheader("📊 Database Coverage Chart")
 
 fig = px.pie(
-
     coverage,
-
     names="Source",
-
     values="Total",
-
-    hole=.5
-
+    hole=0.55
 )
 
 fig.update_layout(
-
-    height=500
-
+    height=450
 )
 
 st.plotly_chart(
-
     fig,
-
     use_container_width=True
-
 )
 
 # ==========================================================
 # RANK DISTRIBUTION
 # ==========================================================
 
-st.divider()
-
-st.header("🏆 Rank Distribution")
-
-rank = (
-
-    area_current
-
-    .groupby(
-
-        [
-
-            "Source",
-
-            "Rank"
-
-        ]
-
-    )
-
-    .size()
-
-    .reset_index(name="Total")
-
-)
+st.subheader("🏆 Rank Distribution")
 
 fig = px.bar(
-
-    rank,
-
+    rank_distribution,
     x="Rank",
-
     y="Total",
-
     color="Source",
-
     barmode="group",
-
     text="Total"
-
 )
 
 fig.update_layout(
-
-    height=600
-
+    height=500
 )
 
 st.plotly_chart(
-
     fig,
-
     use_container_width=True
-
 )
 
 # ==========================================================
 # MAJOR GROUP
 # ==========================================================
 
-st.divider()
-
-st.header("Major Group")
-
-major = (
-
-    area_current
-
-    .groupby(
-
-        "Major Group"
-
-    )
-
-    .size()
-
-    .reset_index(name="Total")
-
-)
+st.subheader("📊 Major Group")
 
 fig = px.bar(
-
-    major,
-
+    major_group,
     x="Major Group",
-
     y="Total",
-
     color="Major Group",
-
     text="Total"
-
 )
 
 fig.update_layout(
-
-    height=450
-
+    height=450,
+    showlegend=False
 )
 
 st.plotly_chart(
-
     fig,
-
     use_container_width=True
-
 )
 
 # ==========================================================
 # AREA GROUP
 # ==========================================================
 
-group = (
-
-    area_current
-
-    .groupby(
-
-        "Area Group"
-
-    )
-
-    .size()
-
-    .reset_index(name="Total")
-
-)
+st.subheader("📊 Area Group")
 
 fig = px.bar(
-
-    group,
-
+    area_group,
     x="Total",
-
     y="Area Group",
-
     orientation="h",
-
     text="Total"
-
 )
 
 fig.update_layout(
-
-    height=600,
-
+    height=max(450, len(area_group) * 28),
     yaxis=dict(
-
         categoryorder="total ascending"
-
     )
-
 )
 
 st.plotly_chart(
-
     fig,
-
     use_container_width=True
-
 )
 
 # ==========================================================
-# AREA TABLE
+# AREA DETAIL
 # ==========================================================
 
-st.divider()
-
-st.header("📄 Area Detail")
+st.subheader("📋 Area Detail")
 
 st.dataframe(
-
-    area_current,
-
+    area_current.sort_values(
+        ["Source", "Area"]
+    ),
     use_container_width=True,
-
     height=500
-
 )
