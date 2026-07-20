@@ -265,6 +265,19 @@ with right:
         "AJG",
         row["ASG_Title"]
     )
+    
+# ======================================================
+# MAINNOTE
+# ======================================================
+
+note = display_value(row["หมายเหตุหลัก"])
+
+if note not in ["", "-", "N/A", None]:
+
+    st.markdown("### 📝 หมายเหตุ")
+
+    with st.container(border=True):
+        st.write(note)
 
 # ==========================================================
 # DATABASE INFORMATION
