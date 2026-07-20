@@ -240,12 +240,12 @@ with left:
         )
 
 # ==========================================================
-# DATABASE COVERAGE
+# DATABASE Journal Group
 # ==========================================================
 
 with right:
 
-    st.subheader("Database Coverage")
+    st.subheader("Database Journal Group")
 
     st.write(
         f"**ABDC Rank :** {display_value(row['2025 rating'])}"
@@ -442,7 +442,7 @@ st.dataframe(
 # TABLE : DATABASE COVERAGE
 # ==========================================================
 
-st.subheader("📚 Database Coverage")
+st.subheader("📚 Database Journal Group")
 
 st.dataframe(
     coverage,
@@ -453,7 +453,7 @@ st.dataframe(
 # PIE CHART
 # ==========================================================
 
-st.subheader("📊 Database Coverage Chart")
+st.subheader("📊 Database Journal Group Chart")
 
 fig = px.pie(
     coverage,
