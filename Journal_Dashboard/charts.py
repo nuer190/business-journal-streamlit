@@ -9,8 +9,10 @@ import plotly.graph_objects as go
 from theme import (
     CHART_LAYOUT,
     DATABASE_COLORS,
+    FONT,
     MAJOR_COLORS,
-    RANK_COLORS
+    RANK_COLORS,
+    SCOPUS_STATUS_COLORS
 )
 
 # ==========================================================
@@ -537,3 +539,89 @@ def trend_major_chart(df, x, y):
         color="Major Group"
 
     )
+    
+def scopus_status_chart(df):
+
+    data = df.copy()
+
+    # -----------------------------
+    # Prepare Status
+    # -----------------------------
+
+    data["Scopus Status"] = (
+        data["Active or Inactive"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
+    )
+
+    data.loc[
+        data["Scopus Status"] == "",
+        "Scopus Status"
+    ] = "Not in Scopus"
+
+    order = [
+        "Active",
+        "Inactive",
+        "Not in Scopus"
+    ]
+
+    summary = (
+        data["Scopus Status"]
+        .value_counts()
+        .reindex(order, fill_value=0)
+        .rename_axis("Status")
+        .reset_index(name="Count")
+    )
+
+    # -----------------------------
+    # Chart
+    # -----------------------------
+
+    fig = px.pie(
+
+        summary,
+
+        names="Status",
+
+        values="Count",
+
+        hole=0.55,
+
+        color="Status",
+
+        color_discrete_map=SCOPUS_STATUS_COLORS
+
+    )
+
+    fig.update_traces(
+
+        textposition="inside",
+
+        textinfo="percent+label",
+
+        hovertemplate="<b>%{label}</b><br>%{value} Journals<extra></extra>"
+
+    )
+
+    fig.update_layout(
+
+        **CHART_LAYOUT,
+
+        title="Scopus Status",
+
+        legend=dict(
+
+            orientation="h",
+
+            y=-0.1,
+
+            x=0.5,
+
+            xanchor="center"
+
+        )
+
+    )
+
+    return fig

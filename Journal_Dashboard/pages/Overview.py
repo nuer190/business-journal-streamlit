@@ -558,6 +558,19 @@ safe_plot(
     "database_major"
 )
 
+# ==========================================================
+# SCOPUS STATUS
+# ==========================================================
+
+st.subheader("Active / Inactive journals ")
+
+fig = scopus_status_chart(master)
+
+st.plotly_chart(
+    fig,
+    use_container_width=True
+)
+
 
 # ==========================================================
 # QUICK STATISTICS
