@@ -553,7 +553,7 @@ st.divider()
 safe_plot(
     major_source_df,
     database_summary_chart,
-    "Database Coverage by Major Group",
+    "Database Journal Group by Major Group",
     "Major Group",
     "database_major"
 )
@@ -827,12 +827,12 @@ with col2:
     )
     
 # ==========================================================
-# COVERAGE SUMMARY
+# JOURNAL GROUP SUMMARY
 # ==========================================================
 
 st.divider()
 
-st.header("📈 Database Coverage")
+st.header("📈 Database Journal Group")
 
 coverage = database_summary(
 
@@ -891,12 +891,12 @@ st.plotly_chart(
 )
 
 # ==========================================================
-# COVERAGE PERCENT
+# Journal Group PERCENT
 # ==========================================================
 
 st.divider()
 
-st.header("Coverage")
+st.header("Journal Group")
 
 total = coverage["Journal"]
 
