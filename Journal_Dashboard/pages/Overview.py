@@ -562,14 +562,25 @@ safe_plot(
 # SCOPUS STATUS
 # ==========================================================
 
-st.subheader("Active / Inactive journals ")
+st.subheader("Scopus Status")
 
-fig = scopus_status_chart(master)
 
-st.plotly_chart(
-    fig,
-    use_container_width=True
+fig = scopus_status_chart(
+
+    master_filter
+
 )
+
+
+if fig:
+
+    st.plotly_chart(
+
+        fig,
+
+        use_container_width=True
+
+    )
 
 
 # ==========================================================

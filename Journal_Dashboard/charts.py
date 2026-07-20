@@ -548,31 +548,42 @@ def scopus_status_chart(df):
     # Prepare Status
     # -----------------------------
 
+    if "Active or Inactive" not in data.columns:
+        return None
+
+
     data["Scopus Status"] = (
+
         data["Active or Inactive"]
-        .fillna("")
+
+        .fillna("Not in Scopus")
+
+        .replace("", "Not in Scopus")
+
         .astype(str)
-        .str.strip()
+
     )
-
-    data.loc[
-        data["Scopus Status"] == "",
-        "Scopus Status"
-    ] = "Not in Scopus"
-
-    order = [
-        "Active",
-        "Inactive",
-        "Not in Scopus"
-    ]
+    
 
     summary = (
+
         data["Scopus Status"]
+
         .value_counts()
-        .reindex(order, fill_value=0)
-        .rename_axis("Status")
-        .reset_index(name="Count")
+
+        .reset_index()
+
     )
+
+
+    summary.columns = [
+
+        "Status",
+
+        "Count"
+
+    ]
+
 
     # -----------------------------
     # Chart
@@ -594,34 +605,23 @@ def scopus_status_chart(df):
 
     )
 
+
     fig.update_traces(
 
         textposition="inside",
 
-        textinfo="percent+label",
-
-        hovertemplate="<b>%{label}</b><br>%{value} Journals<extra></extra>"
+        textinfo="percent+label"
 
     )
+
 
     fig.update_layout(
 
         **CHART_LAYOUT,
 
-        title="Scopus Status",
-
-        legend=dict(
-
-            orientation="h",
-
-            y=-0.1,
-
-            x=0.5,
-
-            xanchor="center"
-
-        )
+        title="Scopus Status"
 
     )
+
 
     return fig
