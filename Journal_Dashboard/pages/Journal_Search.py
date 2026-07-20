@@ -163,7 +163,7 @@ def check_available(data):
 
 def status_badge(name, data):
 
-    c1, c2 = st.columns([1, 2.3])
+    c1, c2 = st.columns([1, 3])
 
     with c1:
         st.write(f"**{name}**")
