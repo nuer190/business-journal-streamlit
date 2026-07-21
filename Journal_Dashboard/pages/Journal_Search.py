@@ -506,51 +506,94 @@ publisher = display_value(row["Publisher"])
 
 best_quality = get_best_quality(row)
 
+
 # ==========================================================
-# Header
+# Header Cards
 # ==========================================================
 
-left, right = st.columns([4, 2])
+left, right = st.columns([3,2])
+
 
 with left:
-    st.markdown("##### Journal Title")
-    st.markdown(f"## {title}")
+
+    with st.container(border=True):
+
+        st.markdown("📚 **Journal Title**")
+
+        st.subheader(title)
+
+
 
 with right:
-    st.markdown("##### Publisher")
-    st.markdown(f"## {publisher}")
 
-st.write("")
+    with st.container(border=True):
+
+        st.markdown("🏢 **Publisher**")
+
+        st.subheader(publisher)
+
+
 
 # ==========================================================
-# Information
+# Information Cards
 # ==========================================================
 
-c1, c2, c3 , c4 = st.columns(4)
+c1, c2, c3, c4 = st.columns(4)
+
 
 with c1:
-    st.metric(
-        "ISSN",
-        display_value(row["ISSN"])
-    )
+
+    with st.container(border=True):
+
+        st.markdown(
+            "🆔 **ISSN**"
+        )
+
+        st.info(
+            display_value(row["ISSN"])
+        )
+
+
 
 with c2:
-    st.metric(
-        "EISSN",
-        display_value(row["ISSNOnline"])
-    )
+
+    with st.container(border=True):
+
+        st.markdown(
+            "🌐 **EISSN**"
+        )
+
+        st.success(
+            display_value(row["ISSNOnline"])
+        )
+
+
 
 with c3:
-    st.metric(
-        "Year Inception",
-        display_value(row["Year Inception"])
-    )
-    
+
+    with st.container(border=True):
+
+        st.markdown(
+            "📅 **Year Inception**"
+        )
+
+        st.warning(
+            display_value(row["Year Inception"])
+        )
+
+
+
 with c4:
-    st.metric(
-        "Best Quality",
-        best_quality
-    )
+
+    with st.container(border=True):
+
+        st.markdown(
+            "🏆 **Best Quality**"
+        )
+
+        st.success(
+            best_quality
+        )
     
     
 # ======================================================
