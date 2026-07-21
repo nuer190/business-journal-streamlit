@@ -4,264 +4,420 @@
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-
-from filters import apply_filters
-from config import *
 
 from utils import load_data
 
+
+# ==========================================================
+# LOAD DATA
+# ==========================================================
+
 master, area = load_data()
+
 
 # ==========================================================
 # PAGE CONFIG
 # ==========================================================
 
 st.set_page_config(
-
     page_title="Area Explorer",
-
     page_icon="🗺️",
-
     layout="wide"
-
 )
+
 
 st.title("🗺️ Area Explorer")
 
 st.caption(
-
-    "Explore Journal by Major Group / Area Group / Area"
-
+    "Explore Journals by Major Group, Area Group, Area, Source and Rank"
 )
 
+
 # ==========================================================
-# SIDEBAR
+# SESSION STATE
 # ==========================================================
 
-st.sidebar.header("Filter")
+if "selected_journal" not in st.session_state:
 
-major = st.sidebar.multiselect(
+    st.session_state.selected_journal = None
 
-    "Major Group",
 
-    sorted(
 
-        area["Major Group"]
+# ==========================================================
+# SIDEBAR FILTER
+# ==========================================================
 
-        .dropna()
-
-        .unique()
-
-    )
-
-)
+st.sidebar.header("🔎 Filter")
 
 temp = area.copy()
+# ใช้ข้อมูลทั้งหมดเป็นตัวเลือก
+
+major = st.sidebar.multiselect(
+    "Major Group",
+    sorted(
+        area["Major Group"]
+        .dropna()
+        .unique()
+    )
+)
+
+
+
+area_group = st.sidebar.multiselect(
+    "Area Group",
+    sorted(
+        area["Area Group"]
+        .dropna()
+        .unique()
+    )
+)
+
+
+
+area_select = st.sidebar.multiselect(
+    "Area",
+    sorted(
+        area["Area"]
+        .dropna()
+        .unique()
+    )
+)
+
+
+
+source = st.sidebar.multiselect(
+    "Source",
+    sorted(
+        area["Source"]
+        .dropna()
+        .unique()
+    )
+)
+
+
+
+rank = st.sidebar.multiselect(
+    "Rank",
+    sorted(
+        area["Rank"]
+        .dropna()
+        .astype(str)
+        .unique()
+    )
+)
+
+# ==========================================================
+# APPLY FILTER
+# ==========================================================
+
+area_filter = area.copy()
+
+
 
 if major:
 
-    temp = temp[
-
-        temp["Major Group"]
-
+    area_filter = area_filter[
+        area_filter["Major Group"]
         .isin(major)
-
     ]
 
-area_group = st.sidebar.multiselect(
 
-    "Area Group",
-
-    sorted(
-
-        temp["Area Group"]
-
-        .dropna()
-
-        .unique()
-
-    )
-
-)
 
 if area_group:
 
-    temp = temp[
-
-        temp["Area Group"]
-
+    area_filter = area_filter[
+        area_filter["Area Group"]
         .isin(area_group)
+    ]
+
+
+
+if area_select:
+
+    area_filter = area_filter[
+        area_filter["Area"]
+        .isin(area_select)
+    ]
+
+
+
+if source:
+
+    area_filter = area_filter[
+        area_filter["Source"]
+        .isin(source)
+    ]
+
+
+
+if rank:
+
+    area_filter = area_filter[
+        area_filter["Rank"]
+        .astype(str)
+        .isin(rank)
+    ]
+    
+if area_filter.empty:
+
+    st.warning(
+        "⚠️ No journal found with selected filters"
+    )
+
+    st.stop()
+
+
+
+# ==========================================================
+# JOURNAL FILTER
+# ==========================================================
+
+# ==========================================================
+# JOURNAL FILTER
+# ==========================================================
+
+journal_filter = (
+
+    master[
+        master["Journal Title"].isin(
+            area_filter["Journal Title"]
+        )
+    ][
+        [
+            "Journal Title",
+            "Publisher",
+            "ISSN",
+            "ISSNOnline"
+        ]
+    ]
+    .drop_duplicates()
+
+)
+
+rank_table = (
+
+    area_filter
+
+    .dropna(subset=["Rank"])
+
+    .copy()
+
+)
+
+# ตัดค่า Rank ที่ว่าง
+rank_table["Rank"] = (
+    rank_table["Rank"]
+    .astype(str)
+    .str.strip()
+)
+
+rank_table = rank_table[
+    ~rank_table["Rank"].isin(
+        ["", "-", "nan", "None", "N/A"]
+    )
+]
+
+
+rank_table = (
+
+    rank_table
+
+    .groupby("Journal Title")["Rank"]
+
+    .apply(
+
+        lambda x:
+
+        ", ".join(
+
+            sorted(
+                set(x)
+            )
+
+        )
+
+    )
+
+    .reset_index()
+
+)
+
+journal_filter = (
+
+    journal_filter
+
+    .merge(
+
+        rank_table,
+
+        on="Journal Title",
+
+        how="left"
+
+    )
+
+)
+
+journal_filter = (
+
+    journal_filter[
+
+        [
+
+            "Journal Title",
+
+            "Publisher",
+
+            "Rank",
+
+            "ISSN",
+
+            "ISSNOnline"
+
+        ]
 
     ]
 
-area_select = st.sidebar.multiselect(
-
-    "Area",
-
-    sorted(
-
-        temp["Area"]
-
-        .dropna()
-
-        .unique()
-
-    )
-
 )
 
-source = st.sidebar.multiselect(
 
-    "Source",
-
-    sorted(
-
-        area["Source"]
-
-        .dropna()
-
-        .unique()
-
-    )
-
-)
-
-rank = st.sidebar.multiselect(
-
-    "Rank",
-
-    sorted(
-
-        area["Rank"]
-
-        .fillna("-")
-
-        .astype(str)
-
-        .unique()
-
-    )
-
-)
 
 # ==========================================================
-# FILTER
+# JOURNAL RESULT
 # ==========================================================
 
-area_filter = apply_filters(
+st.divider()
 
-    area,
 
-    major_groups=major,
-
-    area_groups=area_group,
-
-    areas=area_select,
-
-    sources=source,
-
-    ranks=rank
-
+st.subheader(
+    "📚 Journal List"
 )
 
-journal_filter = master[
 
-    master["Journal Title"]
+if journal_filter.empty:
 
-    .isin(
 
-        area_filter["Journal Title"]
+    st.warning(
+        "No journal found"
+    )
+
+
+else:
+
+
+    st.write(
+
+        f"Found **{len(journal_filter):,}** journals"
 
     )
 
-]
+
+    st.dataframe(
+
+        journal_filter,
+
+        use_container_width=True,
+
+        height=400
+
+    )
+
+
+
+# ==========================================================
+# OPEN JOURNAL PROFILE
+# ==========================================================
+
+st.divider()
+
+
+st.subheader(
+    "🔍 View Journal Profile"
+)
+
+
+
+if not journal_filter.empty:
+
+
+    selected = st.selectbox(
+
+        "Select Journal",
+
+        journal_filter["Journal Title"]
+
+    )
+
+
+
+    if st.button(
+        "Open Journal Search",
+        type="primary"
+    ):
+
+
+        st.session_state.selected_journal = selected
+
+
+        st.switch_page(
+            "pages/Journal_Search.py"
+        )
+        
+
+
 # ==========================================================
 # KPI
 # ==========================================================
 
 st.divider()
 
+
 c1,c2,c3,c4 = st.columns(4)
 
-c1.metric(
 
-    "Journal",
 
-    len(
+with c1:
 
-        journal_filter
+    st.metric(
 
-    )
+        "Journal",
 
-)
-
-c2.metric(
-
-    "Publisher",
-
-    journal_filter["Publisher"]
-
-    .nunique()
-
-)
-
-c3.metric(
-
-    "Area",
-
-    area_filter["Area"]
-
-    .nunique()
-
-)
-
-c4.metric(
-
-    "Database",
-
-    area_filter["Source"]
-
-    .nunique()
-
-)
-
-# ==========================================================
-# AREA SUMMARY
-# ==========================================================
-
-st.divider()
-
-summary = (
-
-    area_filter
-
-    .groupby(
-
-        [
-
-            "Major Group",
-
-            "Area Group",
-
-            "Area"
-
-        ]
+        f"{len(journal_filter):,}"
 
     )
 
-    .size()
 
-    .reset_index(name="Journal")
+with c2:
 
-)
+    st.metric(
 
-st.dataframe(
+        "Publisher",
 
-    summary,
+        journal_filter["Publisher"]
+        .nunique()
 
-    use_container_width=True,
+    )
 
-    height=350
 
-)
+with c3:
+
+    st.metric(
+
+        "Area",
+
+        temp["Area"]
+        .nunique()
+
+    )
+
+
+with c4:
+
+    st.metric(
+
+        "Database",
+
+        temp["Source"]
+        .nunique()
+
+    )
