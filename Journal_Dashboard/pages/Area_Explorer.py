@@ -312,15 +312,40 @@ else:
     )
 
 
-    st.dataframe(
+    event = st.dataframe(
 
-        journal_filter,
+    journal_filter,
 
-        use_container_width=True,
+    use_container_width=True,
 
-        height=400
+    height=400,
+
+    hide_index=True,
+
+    on_select="rerun",
+
+    selection_mode="single-row"
+
+)
+    
+    selected_rows = event.selection.rows
+
+
+if selected_rows:
+
+
+    selected_journal = (
+
+        journal_filter
+
+        .iloc[selected_rows[0]]
+
+        ["Journal Title"]
 
     )
+
+
+    st.session_state.selected_journal = selected_journal
 
 
 
@@ -350,18 +375,20 @@ if not journal_filter.empty:
 
 
 
-    if st.button(
-        "Open Journal Search",
-        type="primary"
-    ):
+    if st.session_state.get(
+    "selected_journal"
+):
 
 
-        st.session_state.selected_journal = selected
+        if st.button(
+             "🔍 Open Journal Profile",
+            type="primary"
+        ):
 
 
-        st.switch_page(
-            "pages/Journal_Search.py"
-        )
+            st.switch_page(
+              "pages/Journal_Search.py"
+            )
         
 
 

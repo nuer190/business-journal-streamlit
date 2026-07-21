@@ -113,19 +113,29 @@ default_index = 0
 
 
 if (
-    st.session_state.get("selected_journal")
+    "selected_journal"
+    in st.session_state
+    and
+    st.session_state.selected_journal
     in journal_list
 ):
 
-    default_index = list(journal_list).index(
+    default_index = list(
+        journal_list
+    ).index(
         st.session_state.selected_journal
     )
 
 
+
 journal_name = st.selectbox(
+
     "Select Journal",
+
     journal_list,
+
     index=default_index
+
 )
 
 # ==========================================================
