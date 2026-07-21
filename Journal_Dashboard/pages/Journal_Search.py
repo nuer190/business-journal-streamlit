@@ -11,6 +11,7 @@ from config import *
 from utils import load_data
 
 from theme import (
+    DATABASE_LIGHT_COLORS,
     apply_theme,
     DATABASE_COLORS,
     RANK_COLORS,
@@ -809,6 +810,23 @@ area_group = (
     .reset_index(name="Total")
 )
 
+
+def highlight_source(row):
+
+    color = DATABASE_LIGHT_COLORS.get(
+        row["Source"],
+        "white"
+    )
+
+    return [
+        f"""
+        background-color:{color};
+        color:#222222;
+        font-weight:400;
+        """
+    ] * len(row)
+
+
 # ==========================================================
 # TABLE : AREA SUMMARY
 # ==========================================================
@@ -828,8 +846,17 @@ st.dataframe(
 
 st.subheader("🏆 Rank Summary")
 
+styled_rank = (
+    rank_summary
+    .style
+    .apply(
+        highlight_source,
+        axis=1
+    )
+)
+
 st.dataframe(
-    rank_summary,
+    styled_rank,
     use_container_width=True,
     height=350
 )
@@ -845,18 +872,27 @@ st.subheader("📋 Area Detail")
 area_detail = (
     area_current
     .drop(
-        columns=[
-            "Journal Key"
-        ],
+        columns=["Journal Key"],
         errors="ignore"
+    )
+    .sort_values(
+        ["Source", "Area"]
+    )
+)
+
+
+styled_area = (
+    area_detail
+    .style
+    .apply(
+        highlight_source,
+        axis=1
     )
 )
 
 
 st.dataframe(
-    area_detail.sort_values(
-        ["Source", "Area"]
-    ),
+    styled_area,
     use_container_width=True,
     height=500
 )
