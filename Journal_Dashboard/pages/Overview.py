@@ -435,69 +435,58 @@ st.header("📊 Analytics Overview")
 # ROW 1
 # ==========================================================
 
-col1, col2 = st.columns(2)
+st.write(
+    major_df[
+        major_df["Major Group"]
+        .astype(str)
+        .str.contains(
+            "Undefined",
+            case=False
+        )
+    ]
+)
 
-# ----------------------------------------------------------
-# Major Group
-# ----------------------------------------------------------
+safe_plot(
+    major_df,
+    major_chart,
+    "Major Group",
+    "Major Group",
+    "major_chart"
+)
 
-with col1:
 
-    safe_plot(
-        major_df,
-        major_chart,
-        "Major Group",
-        "Major Group",
-        "major_chart"
-    )
+safe_plot(
+    area_group_df.head(20),
+    area_group_chart,
+    "Area Group",
+    "Area Group",
+    "area_group_chart"
+)
 
-# ----------------------------------------------------------
-# Area Group
-# ----------------------------------------------------------
-
-with col2:
-
-    safe_plot(
-        area_group_df.head(20),
-        area_group_chart,
-        "Area Group",
-        "Area Group",
-        "area_group_chart"
-    )
 
 # ==========================================================
 # ROW 2
 # ==========================================================
 
-col1, col2 = st.columns(2)
 
-# ----------------------------------------------------------
-# Area
-# ----------------------------------------------------------
+safe_plot(
+    area_df.head(20),
+    area_chart,
+    "Top Area",
+    "Area",
+    "top_area_chart"
+)
 
-with col1:
 
-    safe_plot(
-        area_df.head(20),
-        area_chart,
-        "Top Area",
-        "Area",
-        "top_area_chart"
-    )
+safe_plot(
+    source_df,
+    database_chart,
+    "Database Distribution",
+    "Source",
+    "database_chart"
+)
 
-# ----------------------------------------------------------
-# Database
-# ----------------------------------------------------------
 
-with col2:
-
-    safe_plot(
-        source_df,
-        database_chart,
-        "Database Distribution",
-        "Source",
-        "database_chart"
-    )
 # ==========================================================
 # ROW 3
 # ==========================================================
@@ -520,33 +509,14 @@ def show_chart(df, chart_func, title=None):
         width="stretch"
     )
 
-col1, col2 = st.columns(2)
-
-# ----------------------------------------------------------
-# Rank
-# ----------------------------------------------------------
-
-with col1:
-    safe_plot(
-        rank_source_df,
-        rank_chart,
-        "Rank Distribution",
-        "Rank",
-        "rank_distribution"
-    )
+safe_plot(
+    rank_source_df,
+    rank_chart,
+    "Rank Distribution",
+    "Rank",
+    "rank_distribution"
+)
     
-
-with col2:
-
-    area_top = top_area(area_filter, 10)
-
-    safe_plot(
-        area_top,
-        top_area_chart,
-        "Top 10 Area",
-        "Area",
-        "top_10_area"
-    )
 
 st.divider()
 
@@ -799,203 +769,5 @@ if compare_mode:
         file_name="compare.csv",
 
         mime="text/csv"
-
-    )
-    
-# ==========================================================
-# JOURNAL INSIGHTS
-# ==========================================================
-
-st.divider()
-
-st.header("📌 Journal Insights")
-
-col1, col2 = st.columns(2)
-
-# ==========================================================
-# TOP PUBLISHER
-# ==========================================================
-
-with col1:
-
-    publisher_df = top_publisher(master_filter, 15)
-
-    safe_plot(
-        publisher_df,
-        publisher_chart,
-        "Top Publisher",
-        "Publisher",
-        "top_publisher"
-    )
-
-# ==========================================================
-# TOP RANK
-# ==========================================================
-
-with col2:
-
-    rank_top = top_rank(area_filter, 15)
-
-    safe_plot(
-        rank_top,
-        lambda df: horizontal_bar(
-            df,
-            x="Total",
-            
-            y="Rank"
-            
-        ),
-        "Top Rank",
-        "Rank",
-        "top_rank_chart"
-    )
-    
-# ==========================================================
-# JOURNAL GROUP SUMMARY
-# ==========================================================
-
-st.divider()
-
-st.header("📈 Database Journal Group")
-
-coverage = database_summary(
-
-    master_filter
-
-)
-
-coverage_df = pd.DataFrame({
-
-    "Database":[
-
-        "ABDC",
-
-        "Scopus",
-
-        "Scimago",
-
-        "AJG"
-
-    ],
-
-    "Journal":[
-
-        coverage["ABDC"],
-
-        coverage["Scopus"],
-
-        coverage["Scimago"],
-
-        coverage["AJG"]
-
-    ]
-
-})
-
-st.plotly_chart(
-
-    database_bar_chart(
-
-        coverage_df.rename(
-
-            columns={
-
-                "Database":"Source",
-
-                "Journal":"Total"
-
-            }
-
-        )
-
-    ),
-
-    width="stretch"
-
-)
-
-# ==========================================================
-# Journal Group PERCENT
-# ==========================================================
-
-st.divider()
-
-st.header("Journal Group")
-
-total = coverage["Journal"]
-
-col1,col2,col3,col4 = st.columns(4)
-
-for col,db in zip(
-
-    [col1,col2,col3,col4],
-
-    ["ABDC","Scopus","Scimago","AJG"]
-
-):
-
-    percent = 0
-
-    if total:
-
-        percent = coverage[db]/total*100
-
-    with col:
-
-        st.metric(
-
-            db,
-
-            f"{percent:.1f}%"
-
-        )
-        
-# ==========================================================
-# DATA STATISTICS
-# ==========================================================
-
-st.divider()
-
-st.header("Statistics")
-
-c1,c2,c3,c4 = st.columns(4)
-
-with c1:
-
-    st.metric(
-
-        "Major Group",
-
-        area_filter["Major Group"].nunique()
-
-    )
-
-with c2:
-
-    st.metric(
-
-        "Area Group",
-
-        area_filter["Area Group"].nunique()
-
-    )
-
-with c3:
-
-    st.metric(
-
-        "Area",
-
-        area_filter["Area"].nunique()
-
-    )
-
-with c4:
-
-    st.metric(
-
-        "Publisher",
-
-        master_filter["Publisher"].nunique()
 
     )

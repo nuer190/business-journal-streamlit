@@ -4,56 +4,141 @@
 # ==========================================================
 
 import plotly.express as px
-import plotly.graph_objects as go
 
 from theme import (
     CHART_LAYOUT,
     DATABASE_COLORS,
-    FONT,
     MAJOR_COLORS,
     RANK_COLORS,
-    SCOPUS_STATUS_COLORS
+    SCOPUS_STATUS_COLORS,
+    CHART_PALETTE
 )
+
+
+# ==========================================================
+# CLEAN DATA
+# ==========================================================
+
+def clean_chart_data(df):
+
+    df = df.copy()
+
+
+    df = df.replace(
+
+        [
+            "Undefined",
+            "undefined",
+            "None",
+            "none",
+            "nan",
+            ""
+
+        ],
+
+        None
+
+    )
+
+
+    return df.dropna()
+
+
 
 # ==========================================================
 # STYLE
 # ==========================================================
 
 def style(fig):
-    """
-    Apply dashboard theme to every chart
-    """
 
-    fig.update_layout(**CHART_LAYOUT)
+    fig.update_layout(
 
-    fig.update_xaxes(title_text="")
-    fig.update_yaxes(title_text="")
+        **CHART_LAYOUT,
 
-    fig.update_annotations(font_size=12)
+        legend=dict(
+
+            font=dict(
+                size=14
+            )
+
+        )
+
+    )
+
+
+    # ลบ undefined จาก legend
+
+    fig.for_each_trace(
+
+        lambda trace:
+
+        trace.update(
+            name=""
+            if trace.name in [
+                "undefined",
+                "Undefined",
+                "None"
+            ]
+            else trace.name
+        )
+
+    )
+
+
+    fig.update_xaxes(
+
+        title_text="",
+
+        tickfont=dict(
+            size=14
+        )
+
+    )
+
+
+    fig.update_yaxes(
+
+        title_text="",
+
+        tickfont=dict(
+            size=14
+        )
+
+    )
+
 
     return fig
+
 
 
 # ==========================================================
 # COLOR MAP
 # ==========================================================
 
-def get_color_map(color):
+def get_color_map(column):
 
-    if color == "Source":
+
+    if column == "Source":
+
         return DATABASE_COLORS
 
-    if color == "Major Group":
+
+    if column == "Major Group":
+
         return MAJOR_COLORS
 
-    if color == "Rank":
+
+    if column == "Rank":
+
         return RANK_COLORS
+
 
     return None
 
 
+
 # ==========================================================
-# BAR CHART
+# BAR
 # ==========================================================
 
 def bar(
@@ -76,37 +161,76 @@ def bar(
 
 ):
 
-    kwargs = dict(
 
-        data_frame=df,
+    df = clean_chart_data(df)
 
-        x=x,
 
-        y=y,
+    params = {
 
-        orientation=orientation,
 
-        title=title,
+        "data_frame": df,
 
-        barmode=barmode,
 
-        text=text
+        "x": x,
 
-    )
 
-    if color is not None:
+        "y": y,
 
-        kwargs["color"] = color
+
+        "orientation": orientation,
+
+
+        "title": title,
+
+
+        "text": text
+
+
+    }
+
+
+
+    if color:
+
+
+        params["color"] = color
+
 
         color_map = get_color_map(color)
 
-        if color_map is not None:
 
-            kwargs["color_discrete_map"] = color_map
 
-    fig = px.bar(**kwargs)
+        if color_map:
+
+
+            params["color_discrete_map"] = color_map
+
+
+
+        else:
+
+            params["color_discrete_sequence"] = CHART_PALETTE
+
+
+
+    else:
+
+
+        params["color_discrete_sequence"] = CHART_PALETTE
+
+
+
+
+    fig = px.bar(
+
+        **params
+
+    )
+
+
 
     if orientation == "h":
+
 
         fig.update_layout(
 
@@ -118,7 +242,10 @@ def bar(
 
         )
 
+
+
     return style(fig)
+
 
 
 # ==========================================================
@@ -135,15 +262,14 @@ def horizontal_bar(
 
     color=None,
 
-    title=None,
-
     text="Total"
 
 ):
 
+
     return bar(
 
-        df=df,
+        df,
 
         x=x,
 
@@ -151,58 +277,12 @@ def horizontal_bar(
 
         color=color,
 
-        title=title,
-
         text=text,
 
         orientation="h"
 
     )
 
-
-# ==========================================================
-# PIE
-# ==========================================================
-
-def pie(
-
-    df,
-
-    values,
-
-    names,
-
-    title=None,
-
-    hole=.45
-
-):
-
-    fig = px.pie(
-
-        df,
-
-        values=values,
-
-        names=names,
-
-        color=names,
-
-        color_discrete_map=get_color_map(names),
-
-        hole=hole
-
-    )
-
-    fig.update_traces(
-
-        textposition="inside",
-
-        textinfo="percent+label"
-
-    )
-
-    return style(fig)
 
 
 # ==========================================================
@@ -215,78 +295,48 @@ def donut(
 
     values,
 
-    names,
-
-    title=None
+    names
 
 ):
 
-    return pie(
 
-        df=df,
+    df = clean_chart_data(df)
+
+
+
+    fig = px.pie(
+
+        df,
 
         values=values,
 
         names=names,
 
-        title=title,
+        hole=0.55,
 
-        hole=.60
+        color=names,
+
+
+        color_discrete_map=get_color_map(names)
+
+
+    )
+
+
+
+    fig.update_traces(
+
+        textposition="inside",
+
+        textinfo="percent+label"
 
     )
 
 
-# ==========================================================
-# LINE
-# ==========================================================
-
-def line(
-
-    df,
-
-    x,
-
-    y,
-
-    color=None,
-
-    title=None,
-
-    markers=True
-
-):
-
-    kwargs = dict(
-
-        data_frame=df,
-
-        x=x,
-
-        y=y,
-
-        title=title,
-
-        markers=markers
-
-    )
-
-    if color is not None:
-
-        kwargs["color"] = color
-
-        color_map = get_color_map(color)
-
-        if color_map is not None:
-
-            kwargs["color_discrete_map"] = color_map
-
-    fig = px.line(**kwargs)
 
     return style(fig)
 
-# ==========================================================
-# DASHBOARD CHARTS
-# ==========================================================
+
 
 # ==========================================================
 # MAJOR GROUP
@@ -294,19 +344,32 @@ def line(
 
 def major_chart(df):
 
-    return horizontal_bar(
 
-        df=df,
+    fig = horizontal_bar(
+
+        df,
 
         x="Total",
 
         y="Major Group",
 
-        color="Major Group",
-
-        text="Total"
+        color="Major Group"
 
     )
+
+
+
+    # remove legend
+
+    fig.update_layout(
+
+        showlegend=False
+
+    )
+
+
+    return fig
+
 
 
 # ==========================================================
@@ -315,17 +378,17 @@ def major_chart(df):
 
 def area_group_chart(df):
 
+
     return horizontal_bar(
 
-        df=df,
+        df,
 
         x="Total",
 
-        y="Area Group",
-
-        text="Total"
+        y="Area Group"
 
     )
+
 
 
 # ==========================================================
@@ -334,28 +397,29 @@ def area_group_chart(df):
 
 def area_chart(df):
 
+
     return horizontal_bar(
 
-        df=df,
+        df,
 
         x="Total",
 
-        y="Area",
-
-        text="Total"
+        y="Area"
 
     )
 
 
+
 # ==========================================================
-# DATABASE COVERAGE
+# DATABASE DISTRIBUTION
 # ==========================================================
 
 def database_chart(df):
 
+
     return donut(
 
-        df=df,
+        df,
 
         values="Total",
 
@@ -364,17 +428,19 @@ def database_chart(df):
     )
 
 
+
 # ==========================================================
-# DATABASE BAR
+# RANK DISTRIBUTION
 # ==========================================================
 
-def database_bar_chart(df):
+def rank_chart(df):
+
 
     return bar(
 
-        df=df,
+        df,
 
-        x="Source",
+        x="Rank",
 
         y="Total",
 
@@ -385,15 +451,17 @@ def database_bar_chart(df):
     )
 
 
+
 # ==========================================================
-# DATABASE SUMMARY
+# DATABASE BY MAJOR GROUP
 # ==========================================================
 
 def database_summary_chart(df):
 
+
     return bar(
 
-        df=df,
+        df,
 
         x="Major Group",
 
@@ -408,148 +476,22 @@ def database_summary_chart(df):
     )
 
 
-# ==========================================================
-# AREA SUMMARY
-# ==========================================================
-
-def area_summary_chart(df):
-
-    return bar(
-
-        df=df,
-
-        x="Area Group",
-
-        y="Total",
-
-        text="Total"
-
-    )
-
 
 # ==========================================================
-# TOP AREA
+# SCOPUS STATUS
 # ==========================================================
 
-def top_area_chart(df):
-
-    return horizontal_bar(
-
-        df=df,
-
-        x="Total",
-
-        y="Area",
-
-        text="Total"
-
-    )
-
-
-# ==========================================================
-# TOP PUBLISHER
-# ==========================================================
-
-def publisher_chart(df):
-
-    return horizontal_bar(
-
-        df=df,
-
-        x="Total",
-
-        y="Publisher",
-
-        text="Total"
-
-    )
-
-
-# ==========================================================
-# RANK
-# ==========================================================
-
-def rank_chart(df):
-
-    return bar(
-
-        df=df,
-
-        x="Rank",
-
-        y="Total",
-
-        color="Source",
-
-        text="Total"
-
-    )
-
-
-# ==========================================================
-# TREND
-# ==========================================================
-
-def trend_chart(df, x, y):
-
-    return line(
-
-        df=df,
-
-        x=x,
-
-        y=y
-
-    )
-
-
-# ==========================================================
-# TREND BY DATABASE
-# ==========================================================
-
-def trend_database_chart(df, x, y):
-
-    return line(
-
-        df=df,
-
-        x=x,
-
-        y=y,
-
-        color="Source"
-
-    )
-
-
-# ==========================================================
-# TREND BY MAJOR GROUP
-# ==========================================================
-
-def trend_major_chart(df, x, y):
-
-    return line(
-
-        df=df,
-
-        x=x,
-
-        y=y,
-
-        color="Major Group"
-
-    )
-    
 def scopus_status_chart(df):
+
+
+    if "Active or Inactive" not in df.columns:
+
+        return None
+
+
 
     data = df.copy()
 
-    # -----------------------------
-    # Prepare Status
-    # -----------------------------
-
-    if "Active or Inactive" not in data.columns:
-        return None
 
 
     data["Scopus Status"] = (
@@ -558,12 +500,17 @@ def scopus_status_chart(df):
 
         .fillna("Not in Scopus")
 
-        .replace("", "Not in Scopus")
+        .replace(
 
-        .astype(str)
+            "",
+
+            "Not in Scopus"
+
+        )
 
     )
-    
+
+
 
     summary = (
 
@@ -576,6 +523,7 @@ def scopus_status_chart(df):
     )
 
 
+
     summary.columns = [
 
         "Status",
@@ -585,9 +533,6 @@ def scopus_status_chart(df):
     ]
 
 
-    # -----------------------------
-    # Chart
-    # -----------------------------
 
     fig = px.pie(
 
@@ -606,6 +551,7 @@ def scopus_status_chart(df):
     )
 
 
+
     fig.update_traces(
 
         textposition="inside",
@@ -615,13 +561,4 @@ def scopus_status_chart(df):
     )
 
 
-    fig.update_layout(
-
-        **CHART_LAYOUT,
-
-        title="Scopus Status"
-
-    )
-
-
-    return fig
+    return style(fig)
