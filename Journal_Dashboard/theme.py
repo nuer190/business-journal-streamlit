@@ -33,13 +33,13 @@ FIG_MARGIN = dict(
 
 DATABASE_COLORS = {
 
-    "ABDC": "#4F80C0",       # Blue
+    "ABDC": "#4F80C0",       
 
-    "Scopus": "#73C088",     # Green
+    "Scopus": "#73C088",     
 
-    "Scimago": "#FFC273",    # Orange
+    "Scimago": "#FFC273",    
 
-    "AJG": "#8A49A1"         # Red
+    "AJG": "#8A49A1"         
 
 }
 

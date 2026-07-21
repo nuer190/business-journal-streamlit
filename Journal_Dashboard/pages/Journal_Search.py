@@ -5,6 +5,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import html
 
 from config import *
 from utils import load_data
@@ -160,6 +161,302 @@ def check_available(data):
     """
     return display_value(data) != "N/A"
 
+# ==========================================================
+# BEST QUALITY
+# ==========================================================
+
+QUALITY_RANK = {
+
+    "4*": 1,
+
+    "A*": 2,
+    "4": 2,
+    "Q1": 2,
+
+    "A": 3,
+    "3": 3,
+    "Q2": 3,
+
+    "B": 4,
+    "2": 4,
+    "Q3": 4,
+
+    "C": 5,
+    "1": 5,
+    "Q4": 5
+
+}
+
+# ==========================================================
+# GET BEST AREA
+# ==========================================================
+
+
+def get_best_area(
+        journal_title,
+        database,
+        area_df
+):
+
+
+    temp = area_df[
+
+        (area_df["Journal Title"] == journal_title)
+
+        &
+
+        (area_df["Source"] == database)
+
+    ].copy()
+
+
+
+    if len(temp)==0:
+
+        return "N/A"
+
+
+
+    # --------------------------
+    # ABDC / Scimago
+    # มี Rank
+    # --------------------------
+
+    if database in [
+        "ABDC",
+        "Scimago"
+    ]:
+
+
+        temp = temp[
+            temp["Rank"].notna()
+        ]
+
+
+        if len(temp)>0:
+
+
+            temp["score"] = temp["Rank"].apply(
+
+                lambda x:
+
+                RANK_ORDER[database].get(
+                    str(x).strip(),
+                    999
+                )
+
+            )
+
+
+            best = (
+
+                temp
+
+                .sort_values(
+                    "score"
+                )
+
+                .iloc[0]
+
+            )
+
+
+            return best["Area"]
+
+
+
+
+    # --------------------------
+    # AJG
+    # --------------------------
+
+    if database=="AJG":
+
+
+        temp = temp[
+            temp["Rank"].notna()
+        ]
+
+
+        if len(temp)>0:
+
+            return temp.iloc[0]["Area"]
+
+
+
+    # --------------------------
+    # Scopus
+    # ไม่มี Rank
+    # --------------------------
+
+
+    return temp.iloc[0]["Area"]
+
+
+# ==========================================================
+# GET BEST RANK
+# ==========================================================
+
+
+def get_best_rank(
+        journal_title,
+        database,
+        area_df
+):
+
+
+    temp = area_df[
+
+        (area_df["Journal Title"] == journal_title)
+
+        &
+
+        (area_df["Source"] == database)
+
+    ].copy()
+
+
+
+    if len(temp)==0:
+
+        return "N/A"
+
+
+
+    temp = temp[
+        temp["Rank"].notna()
+    ]
+
+
+
+    if len(temp)==0:
+
+        return "N/A"
+
+
+
+    if database not in RANK_ORDER:
+
+        return temp.iloc[0]["Rank"]
+
+
+
+    temp["score"] = temp["Rank"].apply(
+
+        lambda x:
+
+        RANK_ORDER[database].get(
+
+            str(x).strip(),
+
+            999
+
+        )
+
+    )
+
+
+    best = (
+
+        temp
+
+        .sort_values(
+            "score"
+        )
+
+        .iloc[0]
+
+    )
+
+
+    return best["Rank"]
+
+# ==========================================================
+# DATABASE STATUS
+# ==========================================================
+
+
+def database_status(
+        journal_title,
+        database,
+        area_df
+):
+
+
+    check = area_df[
+
+        (area_df["Journal Title"] == journal_title)
+
+        &
+
+        (area_df["Source"] == database)
+
+    ]
+
+
+    return len(check)>0
+
+
+
+
+def get_best_quality(row):
+    """
+    หา Ranking ที่ดีที่สุดจาก
+    - ABDC
+    - AJG
+    - Scimago
+
+    หากอันดับเท่ากันให้แสดงทั้งหมด
+    """
+
+    rankings = []
+
+    # -------------------------
+    # ABDC
+    # -------------------------
+    abdc = display_value(row["2025 rating"])
+
+    if abdc != "N/A":
+        rank = QUALITY_RANK.get(abdc)
+
+        if rank:
+            rankings.append((rank, f"{abdc} (ABDC)"))
+
+    # -------------------------
+    # AJG
+    # -------------------------
+    ajg = display_value(row["AJG 2024"])
+
+    if ajg != "N/A":
+        rank = QUALITY_RANK.get(ajg)
+
+        if rank:
+            rankings.append((rank, f"{ajg} (AJG)"))
+
+    # -------------------------
+    # Scimago
+    # -------------------------
+    sjr = display_value(row["SJR Best Quartile"])
+
+    if sjr != "N/A":
+        rank = QUALITY_RANK.get(sjr)
+
+        if rank:
+            rankings.append((rank, f"{sjr} (Scimago)"))
+
+    if len(rankings) == 0:
+        return "N/A"
+
+    best_rank = min(x[0] for x in rankings)
+
+    best = [
+        x[1]
+        for x in rankings
+        if x[0] == best_rank
+    ]
+
+    return " | ".join(best)
+
 
 def status_badge(name, data):
 
@@ -180,91 +477,57 @@ def status_badge(name, data):
 
 st.divider()
 
-c1, c2, c3, c4 = st.columns(4)
+title = display_value(row["Journal Title"])
+publisher = display_value(row["Publisher"])
+
+best_quality = get_best_quality(row)
+
+# ==========================================================
+# Header
+# ==========================================================
+
+left, right = st.columns([4, 2])
+
+with left:
+    st.markdown("##### Journal Title")
+    st.markdown(f"## {title}")
+
+with right:
+    st.markdown("##### Publisher")
+    st.markdown(f"## {publisher}")
+
+st.write("")
+
+# ==========================================================
+# Information
+# ==========================================================
+
+c1, c2, c3 , c4 = st.columns(4)
 
 with c1:
-    st.metric(
-        "Publisher",
-        display_value(row["Publisher"])
-    )
-
-with c2:
     st.metric(
         "ISSN",
         display_value(row["ISSN"])
     )
 
-with c3:
+with c2:
     st.metric(
         "EISSN",
         display_value(row["ISSNOnline"])
     )
 
+with c3:
+    st.metric(
+        "Year Inception",
+        display_value(row["Year Inception"])
+    )
+    
 with c4:
     st.metric(
-        "ABDC",
-        display_value(row["2025 rating"])
+        "Best Quality",
+        best_quality
     )
-
-# ==========================================================
-# JOURNAL PROFILE
-# ==========================================================
-
-st.divider()
-
-st.header("📖 Journal Profile")
-
-left, right = st.columns(2)
-
-# ==========================================================
-# BASIC INFORMATION
-# ==========================================================
-
-with left:
-
-    st.subheader("Journal Information")
-
-    journal_info = {
-        "Journal Title": "Journal Title",
-        "Publisher": "Publisher",
-        "ISSN": "ISSN",
-        "EISSN": "ISSNOnline",
-        "Year Inception": "Year Inception",
-        "ABDC Area": "ABDC Area"
-    }
-
-    for label, column in journal_info.items():
-
-        st.write(
-            f"**{label} :** {display_value(row[column])}"
-        )
-
-# ==========================================================
-# DATABASE Journal Group
-# ==========================================================
-
-with right:
-
-    st.subheader("Database Journal Group")
-
-    st.write(
-        f"**ABDC Rank :** {display_value(row['2025 rating'])}"
-    )
-
-    status_badge(
-        "Scopus",
-        row["Scopus_Title"]
-    )
-
-    status_badge(
-        "Scimago",
-        row["Scimago_Title"]
-    )
-
-    status_badge(
-        "AJG",
-        row["ASG_Title"]
-    )
+    
     
 # ======================================================
 # MAINNOTE
@@ -279,78 +542,169 @@ if note not in ["", "-", "N/A", None]:
     with st.container(border=True):
         st.write(note)
 
-# ==========================================================
-# DATABASE INFORMATION
-# ==========================================================
-
-st.divider()
-
-st.header("🗂 Database Information")
-
-tab1, tab2, tab3 = st.columns(3)
 
 # ==========================================================
-# SCOPUS
+# DATABASE PROFILE CARDS
 # ==========================================================
 
-with tab1:
+card_cols = st.columns(4)
 
-    st.subheader("Scopus")
 
-    scopus_info = {
-        "Title": "Scopus_Title",
-        "ISSN": "Scopus_ISSN",
-        "EISSN": "Scopus_EISSN",
-        "Status": "Active or Inactive",
-        "Source Type": "Source Type"
-    }
+for col, db in zip(
+    card_cols,
+    [
+        "ABDC",
+        "Scopus",
+        "Scimago",
+        "AJG"
+    ]
+):
 
-    for label, column in scopus_info.items():
+    with col:
 
-        st.write(
-            f"**{label} :** {display_value(row[column])}"
+
+        # ===============================
+        # Database Status
+        # ===============================
+
+        available = database_status(
+            row["Journal Title"],
+            db,
+            area
         )
 
-# ==========================================================
-# SCIMAGO
-# ==========================================================
 
-with tab2:
+        if available:
 
-    st.subheader("Scimago")
+            status_text = "🟢 Available"
 
-    scimago_info = {
-        "Title": "Scimago_Title",
-        "ISSN": "Scimago_ISSN",
-        "EISSN": "Scimago_EISSN",
-        "Best Quartile": "SJR Best Quartile"
-    }
+        else:
 
-    for label, column in scimago_info.items():
+            status_text = "🔴 Not Available"
 
-        st.write(
-            f"**{label} :** {display_value(row[column])}"
+
+
+        area_name = get_best_area(
+            row["Journal Title"],
+            db,
+            area
         )
 
-# ==========================================================
-# AJG
-# ==========================================================
 
-with tab3:
-
-    st.subheader("AJG")
-
-    ajg_info = {
-        "Title": "ASG_Title",
-        "ISSN": "ASG_ISSN",
-        "Rank": "AJG 2024"
-    }
-
-    for label, column in ajg_info.items():
-
-        st.write(
-            f"**{label} :** {display_value(row[column])}"
+        rank = get_best_rank(
+            row["Journal Title"],
+            db,
+            area
         )
+
+
+
+        # ===============================
+        # Card
+        # ===============================
+
+        with st.container(border=True):
+
+
+            # Database Name
+
+            st.markdown(
+                f"## {db}"
+            )
+
+
+            # Availability
+
+            st.caption(
+                status_text
+            )
+
+
+            st.divider()
+
+
+
+            # Common Fields
+
+            st.caption(
+                "Area"
+            )
+
+            st.write(
+                area_name
+            )
+
+
+
+            st.caption(
+                "Rank"
+            )
+
+            st.write(
+                rank
+            )
+
+
+
+            # ===============================
+            # ABDC
+            # ===============================
+
+            if db == "ABDC":
+
+                st.caption(
+                    "Year Inception"
+                )
+
+                st.write(
+                    row.get(
+                        "Year Inception",
+                        "N/A"
+                    )
+                )
+
+
+
+            # ===============================
+            # Scopus
+            # ===============================
+
+            elif db == "Scopus":
+
+                st.caption(
+                    "Status"
+                )
+
+                st.write(
+                    row.get(
+                        "Active or Inactive",
+                        "N/A"
+                    )
+                )
+
+
+                st.caption(
+                    "Source Type"
+                )
+
+                st.write(
+                    row.get(
+                        "Source Type",
+                        "N/A"
+                    )
+                )
+
+
+                st.caption(
+                    "Coverage"
+                )
+
+                st.write(
+                    row.get(
+                        "Coverage",
+                        "N/A"
+                    )
+                )
         
 # ==========================================================
 # AREA DATA CHECK
@@ -372,19 +726,34 @@ if area_current.empty:
 
 summary = (
     area_current
-    .groupby(
-        ["Major Group", "Area Group"],
-        dropna=False
-    )
-    .size()
-    .reset_index(name="Total")
+    [
+        [
+            "Major Group",
+            "Area Group"
+        ]
+    ]
+    .drop_duplicates()
+    .reset_index(drop=True)
 )
 
 rank_summary = (
     area_current[
-        ["Source", "Area", "Rank"]
+        [
+            "Source",
+            "Major Group",
+            "Area Group",
+            "Area",
+            "Rank"
+        ]
     ]
     .copy()
+    .sort_values(
+        [
+            "Source",
+            "Rank",
+            "Area"
+        ]
+    )
 )
 
 coverage = (
@@ -433,6 +802,7 @@ area_group = (
 
 st.subheader("📄 Area Summary")
 
+
 st.dataframe(
     summary,
     use_container_width=True,
@@ -451,109 +821,7 @@ st.dataframe(
     height=350
 )
 
-# ==========================================================
-# TABLE : DATABASE COVERAGE
-# ==========================================================
 
-st.subheader("📚 Database Journal Group")
-
-st.dataframe(
-    coverage,
-    use_container_width=True
-)
-
-# ==========================================================
-# PIE CHART
-# ==========================================================
-
-st.subheader("📊 Database Journal Group Chart")
-
-fig = px.pie(
-    coverage,
-    names="Source",
-    values="Total",
-    hole=0.55,
-    color="Source",
-    color_discrete_map=DATABASE_COLORS
-)
-
-fig.update_layout(**CHART_LAYOUT)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
-
-# ==========================================================
-# RANK DISTRIBUTION
-# ==========================================================
-
-st.subheader("🏆 Rank Distribution")
-
-fig = px.bar(
-    rank_distribution,
-    x="Rank",
-    y="Total",
-    color="Source",
-    barmode="group",
-    text="Total",
-    color_discrete_map=DATABASE_COLORS
-)
-
-fig.update_layout(**CHART_LAYOUT)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
-
-# ==========================================================
-# MAJOR GROUP
-# ==========================================================
-
-st.subheader("📊 Major Group")
-
-fig = px.bar(
-    major_group,
-    x="Major Group",
-    y="Total",
-    color="Major Group",
-    text="Total",
-    color_discrete_map=MAJOR_COLORS
-)
-
-fig.update_layout(**CHART_LAYOUT)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
-
-# ==========================================================
-# AREA GROUP
-# ==========================================================
-
-st.subheader("📊 Area Group")
-
-fig = px.bar(
-    area_group,
-    x="Total",
-    y="Area Group",
-    orientation="h",
-    text="Total"
-)
-
-fig.update_layout(
-    height=max(450, len(area_group) * 28),
-    yaxis=dict(
-        categoryorder="total ascending"
-    )
-)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
 
 # ==========================================================
 # AREA DETAIL
@@ -561,8 +829,19 @@ st.plotly_chart(
 
 st.subheader("📋 Area Detail")
 
+area_detail = (
+    area_current
+    .drop(
+        columns=[
+            "Journal Key"
+        ],
+        errors="ignore"
+    )
+)
+
+
 st.dataframe(
-    area_current.sort_values(
+    area_detail.sort_values(
         ["Source", "Area"]
     ),
     use_container_width=True,
