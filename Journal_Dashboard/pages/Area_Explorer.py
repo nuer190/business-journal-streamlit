@@ -355,40 +355,17 @@ if selected_rows:
 
 st.divider()
 
+selected = st.session_state.get("selected_journal")
 
-st.subheader(
-    "🔍 View Journal Profile"
-)
+if selected:
 
+    st.info(f"Selected Journal: **{selected}**")
 
-
-if not journal_filter.empty:
-
-
-    selected = st.selectbox(
-
-        "Select Journal",
-
-        journal_filter["Journal Title"]
-
-    )
-
-
-
-    if st.session_state.get(
-    "selected_journal"
-):
-
-
-        if st.button(
-             "🔍 Open Journal Profile",
-            type="primary"
-        ):
-
-
-            st.switch_page(
-              "pages/Journal_Search.py"
-            )
+    if st.button(
+        "🔍 Open Journal Profile",
+        type="primary"
+    ):
+        st.switch_page("pages/Journal_Search.py")
         
 
 

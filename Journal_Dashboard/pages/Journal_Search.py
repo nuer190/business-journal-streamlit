@@ -518,7 +518,7 @@ with left:
 
     with st.container(border=True):
 
-        st.markdown("📚 **Journal Title**")
+        st.markdown("**Journal Title**")
 
         st.subheader(title)
 
@@ -528,7 +528,7 @@ with right:
 
     with st.container(border=True):
 
-        st.markdown("🏢 **Publisher**")
+        st.markdown("**Publisher**")
 
         st.subheader(publisher)
 
@@ -546,7 +546,7 @@ with c1:
     with st.container(border=True):
 
         st.markdown(
-            "🆔 **ISSN**"
+            "**ISSN**"
         )
 
         st.info(
@@ -560,7 +560,7 @@ with c2:
     with st.container(border=True):
 
         st.markdown(
-            "🌐 **EISSN**"
+            "**EISSN**"
         )
 
         st.success(
@@ -574,7 +574,7 @@ with c3:
     with st.container(border=True):
 
         st.markdown(
-            "📅 **Year Inception**"
+            "**Year Inception**"
         )
 
         st.warning(
@@ -664,35 +664,24 @@ for col, db in zip(
             area
         )
 
-
-
         # ===============================
         # Card
         # ===============================
 
         with st.container(border=True):
-
-
             # Database Name
-
             st.markdown(
                 f"## {db}"
             )
 
-
             # Availability
-
             st.caption(
                 status_text
             )
-
-
+            
             st.divider()
-
-
-
+            
             # Common Fields
-
             st.caption(
                 "Area"
             )
@@ -701,17 +690,15 @@ for col, db in zip(
                 area_name
             )
 
+            RANK_LABEL = {
+                "ABDC": "Rank",
+                "Scopus": "Rank",
+                "Scimago": "Best Rank",
+                "AJG": "Rank"
+            }
 
-
-            st.caption(
-                "Rank"
-            )
-
-            st.write(
-                rank
-            )
-
-
+            st.caption(RANK_LABEL.get(db, "Rank"))
+            st.write(rank)
 
             # ===============================
             # ABDC
@@ -729,7 +716,6 @@ for col, db in zip(
                         "N/A"
                     )
                 )
-
 
 
             # ===============================
@@ -925,7 +911,7 @@ st.subheader("📋 Area Detail")
 area_detail = (
     area_current
     .drop(
-        columns=["Journal Key"],
+        columns=["Journal_Key","Best Rank"],
         errors="ignore"
     )
     .sort_values(

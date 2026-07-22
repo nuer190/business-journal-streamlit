@@ -49,67 +49,44 @@ def clean_chart_data(df):
 # STYLE
 # ==========================================================
 
+# ==========================================================
+# STYLE
+# ==========================================================
+
 def style(fig):
 
     fig.update_layout(
-
         **CHART_LAYOUT,
-
+        title=None,           # <--- เพิ่มบรรทัดนี้เพื่อลบ Title
+        title_text="",        # <--- ลบข้อความ Title
+        legend_title_text="",
         legend=dict(
-
-            font=dict(
-                size=14
-            )
-
+            title=dict(text=""),
+            font=dict(size=14)
         )
-
     )
 
 
-    # ลบ undefined จาก legend
+    fig.update_layout(
+        title_subtitle_text=""  # <--- ลบ undefined (subtitle)
+    )
+    
+    fig.update_coloraxes(colorbar_title_text="")
+    
+    fig.for_each_annotation(
+        lambda a: a.update(text="") if "undefined" in str(a.text).lower() else None
+    )
 
     fig.for_each_trace(
-
-        lambda trace:
-
-        trace.update(
-            name=""
-            if trace.name in [
-                "undefined",
-                "Undefined",
-                "None"
-            ]
-            else trace.name
+        lambda trace: trace.update(
+            name="" if str(trace.name).lower() in ["undefined", "none"] else trace.name
         )
-
     )
 
-
-    fig.update_xaxes(
-
-        title_text="",
-
-        tickfont=dict(
-            size=14
-        )
-
-    )
-
-
-    fig.update_yaxes(
-
-        title_text="",
-
-        tickfont=dict(
-            size=14
-        )
-
-    )
-
+    fig.update_xaxes(title_text="", tickfont=dict(size=14))
+    fig.update_yaxes(title_text="", tickfont=dict(size=14))
 
     return fig
-
-
 
 # ==========================================================
 # COLOR MAP
@@ -117,136 +94,72 @@ def style(fig):
 
 def get_color_map(column):
 
-
     if column == "Source":
 
         return DATABASE_COLORS
-
 
     if column == "Major Group":
 
         return MAJOR_COLORS
 
-
     if column == "Rank":
 
         return RANK_COLORS
 
-
     return None
 
-
+# ==========================================================
+# BAR
+# ==========================================================
 
 # ==========================================================
 # BAR
 # ==========================================================
 
 def bar(
-
     df,
-
     x,
-
     y,
-
     color=None,
-
     title=None,
-
     barmode="group",
-
     text=None,
-
     orientation="v"
-
 ):
-
-
     df = clean_chart_data(df)
 
-
     params = {
-
-
         "data_frame": df,
-
-
         "x": x,
-
-
         "y": y,
-
-
         "orientation": orientation,
-
-
         "title": title,
-
-
-        "text": text
-
-
+        "text": text,
+        "labels": {x: "", y: "", color: ""} # <--- ปิด label อัตโนมัติของ Plotly Express
     }
 
-
-
     if color:
-
-
         params["color"] = color
-
-
         color_map = get_color_map(color)
-
-
-
         if color_map:
-
-
             params["color_discrete_map"] = color_map
-
-
-
         else:
-
             params["color_discrete_sequence"] = CHART_PALETTE
-
-
-
     else:
-
-
         params["color_discrete_sequence"] = CHART_PALETTE
 
-
-
-
     fig = px.bar(
-
         **params
-
     )
 
-
-
     if orientation == "h":
-
-
         fig.update_layout(
-
             yaxis=dict(
-
                 categoryorder="total ascending"
-
             )
-
         )
 
-
-
     return style(fig)
-
-
 
 # ==========================================================
 # HORIZONTAL BAR
@@ -283,8 +196,6 @@ def horizontal_bar(
 
     )
 
-
-
 # ==========================================================
 # DONUT
 # ==========================================================
@@ -299,11 +210,7 @@ def donut(
 
 ):
 
-
     df = clean_chart_data(df)
-
-
-
     fig = px.pie(
 
         df,
@@ -316,13 +223,9 @@ def donut(
 
         color=names,
 
-
         color_discrete_map=get_color_map(names)
 
-
     )
-
-
 
     fig.update_traces(
 
@@ -332,18 +235,13 @@ def donut(
 
     )
 
-
-
     return style(fig)
-
-
 
 # ==========================================================
 # MAJOR GROUP
 # ==========================================================
 
 def major_chart(df):
-
 
     fig = horizontal_bar(
 
@@ -357,8 +255,6 @@ def major_chart(df):
 
     )
 
-
-
     # remove legend
 
     fig.update_layout(
@@ -366,11 +262,8 @@ def major_chart(df):
         showlegend=False
 
     )
-
-
+    
     return fig
-
-
 
 # ==========================================================
 # AREA GROUP
@@ -389,8 +282,6 @@ def area_group_chart(df):
 
     )
 
-
-
 # ==========================================================
 # AREA
 # ==========================================================
@@ -407,8 +298,6 @@ def area_chart(df):
         y="Area"
 
     )
-
-
 
 # ==========================================================
 # DATABASE DISTRIBUTION
@@ -427,14 +316,11 @@ def database_chart(df):
 
     )
 
-
-
 # ==========================================================
 # RANK DISTRIBUTION
 # ==========================================================
 
 def rank_chart(df):
-
 
     return bar(
 
@@ -449,8 +335,6 @@ def rank_chart(df):
         text="Total"
 
     )
-
-
 
 # ==========================================================
 # DATABASE BY MAJOR GROUP
@@ -475,8 +359,6 @@ def database_summary_chart(df):
 
     )
 
-
-
 # ==========================================================
 # SCOPUS STATUS
 # ==========================================================
@@ -488,11 +370,7 @@ def scopus_status_chart(df):
 
         return None
 
-
-
     data = df.copy()
-
-
 
     data["Scopus Status"] = (
 
@@ -510,8 +388,6 @@ def scopus_status_chart(df):
 
     )
 
-
-
     summary = (
 
         data["Scopus Status"]
@@ -522,8 +398,6 @@ def scopus_status_chart(df):
 
     )
 
-
-
     summary.columns = [
 
         "Status",
@@ -531,8 +405,6 @@ def scopus_status_chart(df):
         "Count"
 
     ]
-
-
 
     fig = px.pie(
 
@@ -550,8 +422,6 @@ def scopus_status_chart(df):
 
     )
 
-
-
     fig.update_traces(
 
         textposition="inside",
@@ -559,6 +429,5 @@ def scopus_status_chart(df):
         textinfo="percent+label"
 
     )
-
 
     return style(fig)
