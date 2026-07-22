@@ -143,39 +143,6 @@ ABDC | Scopus | Scimago | AJG
 st.divider()
 
 # ==========================================================
-# SUMMARY
-# ==========================================================
-
-m1, m2, m3, m4, m5 = st.columns(5)
-
-m1.metric(
-    "📄 Total Journal",
-    f"{len(master):,}"
-)
-
-m2.metric(
-    "🏆 ABDC",
-    master["2025 rating"].notna().sum()
-)
-
-m3.metric(
-    "🌍 Scopus",
-    master["Scopus_Title"].notna().sum()
-)
-
-m4.metric(
-    "📊 Scimago",
-    master["Scimago_Title"].notna().sum()
-)
-
-m5.metric(
-    "⭐ AJG",
-    master["ASG_Title"].notna().sum()
-)
-
-st.divider()
-
-# ==========================================================
 # NAVIGATION
 # ==========================================================
 
