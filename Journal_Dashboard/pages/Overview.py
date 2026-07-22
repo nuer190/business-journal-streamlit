@@ -435,17 +435,6 @@ st.header("📊 Analytics Overview")
 # ROW 1
 # ==========================================================
 
-st.write(
-    major_df[
-        major_df["Major Group"]
-        .astype(str)
-        .str.contains(
-            "Undefined",
-            case=False
-        )
-    ]
-)
-
 safe_plot(
     major_df,
     major_chart,
