@@ -19,6 +19,9 @@ from theme import (
     PLOT_COLOR,
     BAR_BORDER_COLOR,
     BAR_BORDER_WIDTH,
+    AREA_GRADIENT_START,
+    AREA_GRADIENT_END,
+    AREA_BLUE_SCALE,
     HOVER_LABEL
 )
 
@@ -44,6 +47,45 @@ def clean_chart_data(df):
     return df.dropna()
 
 # ==========================================================
+# CREATE GRADIENT COLORS
+# ==========================================================
+
+def create_gradient_colors(n):
+
+
+    import plotly.colors as colors
+
+    if n <= 1:
+        return [
+            AREA_BLUE_SCALE[0]
+        ]
+
+    return colors.sample_colorscale(
+        AREA_BLUE_SCALE,
+        [
+            i/(n-1)
+            for i in range(n)
+        ]
+    )
+
+# ==========================================================
+# GRADIENT COLOR
+# ==========================================================
+
+def apply_gradient_color(fig, df):
+
+    gradient_colors = create_gradient_colors(
+
+        len(df)
+    )
+    
+    for trace in fig.data:
+
+        trace.marker.color = gradient_colors
+
+    return fig
+
+# ==========================================================
 # COLOR SYSTEM
 # ==========================================================
 
@@ -61,15 +103,62 @@ def get_color_map(column):
             RANK_COLORS,
 
         "Status":
-            SCOPUS_STATUS_COLORS
+            SCOPUS_STATUS_COLORS,
+        
+        "Area Group": AREA_BLUE_SCALE,
+
+        "Area": AREA_BLUE_SCALE,
     }
     return COLOR_MAP.get(column)
+
+def get_gradient_map(values):
+
+
+    import plotly.colors as colors
+
+
+    n = len(values)
+
+
+    if n <= 1:
+
+        color_list = [
+            AREA_BLUE_SCALE[0]
+        ]
+
+    else:
+
+        color_list = colors.sample_colorscale(
+
+            AREA_BLUE_SCALE,
+
+            [
+                i/(n-1)
+
+                for i in range(n)
+
+            ]
+
+        )
+
+
+    return dict(
+
+        zip(
+
+            values,
+
+            color_list
+
+        )
+
+    )
 
 # ==========================================================
 # GLOBAL CHART STYLE
 # ==========================================================
 
-def style(fig):
+def style(fig,show_legend = False):
 
     fig.update_layout(
 
@@ -94,14 +183,9 @@ def style(fig):
     )
 
     fig.update_xaxes(
-
         title_text="",
-
-
         tickfont=dict(
-
             size=14
-
         ),
 
         linecolor=GRID_COLOR,
@@ -171,7 +255,8 @@ def build_bar(
     color=None,
     text=None,
     orientation="v",
-    barmode="group"
+    barmode="group",
+    gradient=False
 
 ):
     df = clean_chart_data(df)
@@ -209,7 +294,23 @@ def build_bar(
 
     if color:
         params["color"] = color
-        color_map = get_color_map(color)
+        if color in [
+
+            "Area",
+
+            "Area Group"
+
+        ]:
+
+            color_map = get_gradient_map(
+
+                df[color].tolist()
+
+            )
+
+        else:
+
+            color_map = get_color_map(color)
 
         if color_map:
 
@@ -222,8 +323,16 @@ def build_bar(
                 "color_discrete_sequence"
 
             ] = CHART_PALETTE
+            
+    if gradient:
+        params["color"] = y
+        params["color_continuous_scale"] = AREA_BLUE_SCALE
+        params["color_continuous_midpoint"] = df[x].median()
+
     else:
+
         params[
+
             "color_discrete_sequence"
 
         ] = CHART_PALETTE
@@ -232,7 +341,15 @@ def build_bar(
         
         **params
         
+        
     )
+    
+    if gradient:
+
+        fig = apply_gradient_color(
+            fig,
+            df
+            )
     
     fig.update_layout(
 
@@ -311,40 +428,36 @@ def bar(
         barmode
 
     )
+    
+
 
 # ==========================================================
 # HORIZONTAL BAR
 # ==========================================================
 
 def horizontal_bar(
-
     df,
-
     x,
-
     y,
-
     color=None,
-
-    text="Total"
-
+    text="Total",
+    gradient=False
 ):
-
+    
     return build_bar(
-
         df,
-
         x,
-
         y,
-
         color,
-
         text,
-
-        "h"
-
+        "h",
+        gradient=gradient
     )
+    
+    fig.update_layout(
+        showlegend=False
+    )
+    return fig
     
 # ==========================================================
 # DONUT / PIE
@@ -353,9 +466,7 @@ def horizontal_bar(
 def donut(
 
     df,
-
     values,
-
     names
 
 ):
@@ -441,7 +552,9 @@ def donut(
             "<extra></extra>"
 
     )
-    return style(fig)
+    return style(
+        fig,
+        show_legend=True)
 
 # ==========================================================
 # MAJOR GROUP
@@ -453,23 +566,15 @@ def major_chart(df):
     fig = horizontal_bar(
 
         df,
-
         x="Total",
-
         y="Major Group",
-
         color="Major Group"
-
     )
-
-
+    
     fig.update_layout(
-
         showlegend=False
-
     )
-
-
+    
     return fig
 
 # ==========================================================
@@ -478,16 +583,24 @@ def major_chart(df):
 
 def area_group_chart(df):
 
+    df = df.sort_values(
+        "Total",
+        ascending=False
+    )
 
-    return horizontal_bar(
-
+    fig = horizontal_bar(
         df,
-
         x="Total",
-
-        y="Area Group"
+        y="Area Group",
+        color="Area Group"
 
     )
+
+    fig.update_layout(
+        showlegend=False
+    )
+
+    return fig
 
 # ==========================================================
 # AREA
@@ -495,23 +608,28 @@ def area_group_chart(df):
 
 def area_chart(df):
 
-
-    return horizontal_bar(
-
-        df,
-
-        x="Total",
-
-        y="Area"
-
+    df = df.sort_values(
+        "Total",
+        ascending=False
     )
 
+    fig = horizontal_bar(
+        df,
+        x="Total",
+        y="Area",
+        color="Area"
+    )
+
+    fig.update_layout(
+        showlegend=False
+    )
+
+    return fig
 # ==========================================================
 # DATABASE DISTRIBUTION
 # ==========================================================
 
 def database_chart(df):
-
 
     return donut(
 
@@ -529,20 +647,19 @@ def database_chart(df):
 
 def rank_chart(df):
 
-
-    return bar(
-
+    fig = bar(
         df,
-
         x="Rank",
-
         y="Total",
-
         color="Rank",
-
         text="Total"
-
     )
+
+    fig.update_layout(
+        showlegend=False
+    )
+
+    return fig
 
 # ==========================================================
 # DATABASE BY MAJOR GROUP
@@ -551,7 +668,7 @@ def rank_chart(df):
 def database_summary_chart(df):
 
 
-    return bar(
+    fig = bar(
 
         df,
 
@@ -566,6 +683,17 @@ def database_summary_chart(df):
         text="Total"
 
     )
+
+
+    fig.update_layout(
+
+        showlegend=True
+
+    )
+
+
+    return fig
+    
 
 # ==========================================================
 # SCOPUS STATUS
