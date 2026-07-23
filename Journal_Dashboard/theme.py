@@ -10,28 +10,24 @@
 
 FONT = "Segoe UI"
 
-
-
 # ==========================================================
 # FIGURE
 # ==========================================================
 
-FIG_HEIGHT = 600
+FIG_HEIGHT = 850
 
 
 FIG_MARGIN = dict(
 
-    l=80,
+    l=100,
 
-    r=50,
+    r=80,
 
-    t=80,
+    t=100,
 
-    b=60
+    b=80
 
 )
-
-
 
 # ==========================================================
 # CHART FONT
@@ -54,7 +50,41 @@ TITLE_FONT = {
 
 }
 
+# ==========================================================
+# CHART STYLE
+# ==========================================================
 
+GRID_COLOR = "#E8EEF5"
+
+AXIS_COLOR = "#5B6573"
+
+TEXT_COLOR = "#37474F"
+
+PAPER_COLOR = "white"
+
+PLOT_COLOR = "white"
+
+BAR_BORDER_COLOR = "white"
+
+BAR_BORDER_WIDTH = 1.2
+
+HOVER_LABEL = dict(
+
+    bgcolor="white",
+
+    bordercolor="#D9E2EC",
+
+    font=dict(
+
+        family=FONT,
+
+        size=15,
+
+        color=TEXT_COLOR
+
+    )
+
+)
 
 # ==========================================================
 # DATABASE COLORS
@@ -106,29 +136,19 @@ DATABASE_LIGHT_COLORS = {
 
 RANK_COLORS = {
 
-    "4*": "#1B5E20",
-
-    "A*": "#1B5E20",
-
-    "4": "#2E7D32",
-
-    "A": "#2E7D32",
-
-    "3": "#558B2F",
-
-    "B": "#F9A825",
-
-    "2": "#EF6C00",
-
-    "C": "#D84315",
-
-    "Q1": "#00695C",
-
-    "Q2": "#00897B",
-
-    "Q3": "#FFA000",
-
-    "Q4": "#D84315"
+    "A*": "#2E5FA8",
+    "A":  "#4F80C0",
+    "B":  "#79A3D5",
+    "C":  "#B7D0EA",
+    "4*": "#5F2A77",
+    "4":  "#73408D",
+    "3":  "#8A49A1",
+    "2":  "#A66CBD",
+    "1":  "#CBB0DA",
+    "Q1": "#E49B32",
+    "Q2": "#F3B65B",
+    "Q3": "#FFC273",
+    "Q4": "#FFE0AE",
 
 }
 
@@ -160,29 +180,17 @@ KPI_COLORS = {
 
 MAJOR_COLORS = {
 
+    "Business": "#4F80C0",
 
-    "Business":
-        "#42A5F5",
+    "Economics": "#6794CA",
 
+    "Management": "#73C088",
 
-    "Economics":
-        "#66BB6A",
+    "Accounting": "#8FD0A3",
 
+    "Marketing": "#FFC273",
 
-    "Management":
-        "#FFA726",
-
-
-    "Accounting":
-        "#EF5350",
-
-
-    "Marketing":
-        "#AB47BC",
-
-
-    "Finance":
-        "#26C6DA"
+    "Finance": "#8A49A1"
 
 }
 
@@ -215,63 +223,58 @@ SCOPUS_STATUS_COLORS = {
 
 CHART_LAYOUT = {
 
-
     "template":
         "plotly_white",
-
 
     "height":
         FIG_HEIGHT,
 
-
     "font":
         CHART_FONT,
-
-
-    "title_font":
-        TITLE_FONT,
-
 
     "margin":
         FIG_MARGIN,
 
-
     "hoverlabel":
-        {
-
-            "font_size": 15
-
-        }
+        HOVER_LABEL
 
 }
 
 # ==========================================================
 # CHART PALETTE
-# ใช้สำหรับกราฟที่ไม่มี category color เฉพาะ
 # ==========================================================
 
 CHART_PALETTE = [
 
-    "#4F80C0",   # Blue
+    "#4F80C0",
+    "#6794CA",
+    "#8CB1DA",
 
-    "#73C088",   # Green
+    "#73C088",
+    "#8FD0A3",
+    "#B6E2C2",
 
-    "#FFC273",   # Yellow
+    "#FFC273",
+    "#FFD08F",
+    "#FFE1B8",
 
-    "#8A49A1",   # Purple
-
-    "#6FA8DC",
-
-    "#93C47D",
-
-    "#F6B26B",
-
-    "#B4A7D6"
+    "#8A49A1",
+    "#A66CBD",
+    "#C6A0D7"
 
 ]
 
+BACKGROUND_COLORS = {
 
+    "Blue": "#F4F8FC",
 
+    "Green": "#F5FBF7",
+
+    "Orange": "#FFF9F2",
+
+    "Purple": "#FAF6FC"
+
+}
 
 # ==========================================================
 # STREAMLIT CSS

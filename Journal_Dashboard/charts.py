@@ -1,6 +1,6 @@
 # ==========================================================
 # charts.py
-# Journal Dashboard Chart Library
+# Journal Dashboard Chart Library (Refactor Version)
 # ==========================================================
 
 import plotly.express as px
@@ -11,155 +11,306 @@ from theme import (
     MAJOR_COLORS,
     RANK_COLORS,
     SCOPUS_STATUS_COLORS,
-    CHART_PALETTE
+    CHART_PALETTE,
+    GRID_COLOR,
+    AXIS_COLOR,
+    TEXT_COLOR,
+    PAPER_COLOR,
+    PLOT_COLOR,
+    BAR_BORDER_COLOR,
+    BAR_BORDER_WIDTH,
+    HOVER_LABEL
 )
-
 
 # ==========================================================
 # CLEAN DATA
 # ==========================================================
 
 def clean_chart_data(df):
-
     df = df.copy()
-
-
     df = df.replace(
-
         [
             "Undefined",
             "undefined",
             "None",
             "none",
             "nan",
-            ""
-
+            "",
+            " "
         ],
-
         None
-
     )
-
 
     return df.dropna()
 
-
-
 # ==========================================================
-# STYLE
+# COLOR SYSTEM
 # ==========================================================
 
+def get_color_map(column):
+
+    COLOR_MAP = {
+
+        "Source":
+            DATABASE_COLORS,
+
+        "Major Group":
+            MAJOR_COLORS,
+
+        "Rank":
+            RANK_COLORS,
+
+        "Status":
+            SCOPUS_STATUS_COLORS
+    }
+    return COLOR_MAP.get(column)
+
 # ==========================================================
-# STYLE
+# GLOBAL CHART STYLE
 # ==========================================================
 
 def style(fig):
 
     fig.update_layout(
+
         **CHART_LAYOUT,
-        title=None,           # <--- เพิ่มบรรทัดนี้เพื่อลบ Title
-        title_text="",        # <--- ลบข้อความ Title
-        legend_title_text="",
+        
+        paper_bgcolor=PAPER_COLOR,
+        plot_bgcolor=PLOT_COLOR,
         legend=dict(
-            title=dict(text=""),
-            font=dict(size=14)
+            
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="left",
+            x=0,
+            bgcolor="rgba(0,0,0,0)",
+            font=dict(
+                size=14
+            )
+
         )
+
     )
 
+    fig.update_xaxes(
 
-    fig.update_layout(
-        title_subtitle_text=""  # <--- ลบ undefined (subtitle)
+        title_text="",
+
+
+        tickfont=dict(
+
+            size=14
+
+        ),
+
+        linecolor=GRID_COLOR,
+        gridcolor=GRID_COLOR,
+        showgrid=True,
+        gridwidth=1,
+        zeroline=False,
+        showline=True,
+        ticks="outside",
+        color=AXIS_COLOR
+    )
+
+    fig.update_yaxes(
+        title_text="",
+        tickfont=dict(
+            size=14
+        ),
+        
+        linecolor=GRID_COLOR,
+        gridcolor=GRID_COLOR,
+        showgrid=True,
+        gridwidth=1,
+        zeroline=False,
+        showline=True,
+        ticks="outside",
+        color=AXIS_COLOR
+    )
+
+    fig.update_coloraxes(
+
+        colorbar_title_text=""
     )
     
-    fig.update_coloraxes(colorbar_title_text="")
-    
-    fig.for_each_annotation(
-        lambda a: a.update(text="") if "undefined" in str(a.text).lower() else None
-    )
-
     fig.for_each_trace(
-        lambda trace: trace.update(
-            name="" if str(trace.name).lower() in ["undefined", "none"] else trace.name
+        lambda trace:
+        trace.update(
+
+            name=""
+
+            if str(trace.name).lower()
+
+            in [
+
+                "undefined",
+
+                "none",
+
+                ""
+            ]
+
+            else trace.name
+
         )
+
     )
-
-    fig.update_xaxes(title_text="", tickfont=dict(size=14))
-    fig.update_yaxes(title_text="", tickfont=dict(size=14))
-
     return fig
 
 # ==========================================================
-# COLOR MAP
+# GENERIC BAR BUILDER
 # ==========================================================
 
-def get_color_map(column):
+def build_bar(
+    
+    df,
+    x,
+    y,
+    color=None,
+    text=None,
+    orientation="v",
+    barmode="group"
 
-    if column == "Source":
+):
+    df = clean_chart_data(df)
+    params = {
 
-        return DATABASE_COLORS
+        "data_frame":
+            df,
+        "x":
+            x,
+        "y":
+            y,
 
-    if column == "Major Group":
+        "orientation":
+            orientation,
 
-        return MAJOR_COLORS
+        "text":
+            text,
 
-    if column == "Rank":
+        "barmode":
+            barmode,
 
-        return RANK_COLORS
+        "labels":
+            {
+                x:"",
 
-    return None
+                y:"",
 
-# ==========================================================
-# BAR
-# ==========================================================
+                color:""
+
+                if color
+
+                else ""
+            }
+    }
+
+    if color:
+        params["color"] = color
+        color_map = get_color_map(color)
+
+        if color_map:
+
+            params[
+                "color_discrete_map"
+                
+            ] = color_map
+        else:
+            params[
+                "color_discrete_sequence"
+
+            ] = CHART_PALETTE
+    else:
+        params[
+            "color_discrete_sequence"
+
+        ] = CHART_PALETTE
+
+    fig = px.bar(
+        
+        **params
+        
+    )
+    
+    fig.update_layout(
+
+        bargap=0.15,
+
+        bargroupgap=0.05
+
+    )
+
+    if orientation == "h":
+       
+        fig.update_layout(
+
+            yaxis=dict(
+
+                categoryorder="total ascending"
+
+            )
+
+        )
+
+
+        fig.update_traces(
+
+            width=0.7
+
+        )
+
+    fig.update_traces(
+
+        marker_line_color=
+
+            BAR_BORDER_COLOR,
+
+        marker_line_width=
+
+            BAR_BORDER_WIDTH,
+
+        opacity=0.95,
+
+        textposition=
+
+            "outside",
+
+        cliponaxis=False,
+        
+        width=0.75
+
+    )
+
+    return style(fig)
 
 # ==========================================================
 # BAR
 # ==========================================================
 
 def bar(
+
     df,
     x,
     y,
     color=None,
-    title=None,
-    barmode="group",
     text=None,
-    orientation="v"
+    barmode="group"
+
 ):
-    df = clean_chart_data(df)
 
-    params = {
-        "data_frame": df,
-        "x": x,
-        "y": y,
-        "orientation": orientation,
-        "title": title,
-        "text": text,
-        "labels": {x: "", y: "", color: ""} # <--- ปิด label อัตโนมัติของ Plotly Express
-    }
+    return build_bar(
 
-    if color:
-        params["color"] = color
-        color_map = get_color_map(color)
-        if color_map:
-            params["color_discrete_map"] = color_map
-        else:
-            params["color_discrete_sequence"] = CHART_PALETTE
-    else:
-        params["color_discrete_sequence"] = CHART_PALETTE
+        df,
+        x,
+        y,
+        color,
+        text,
+        "v",
+        barmode
 
-    fig = px.bar(
-        **params
     )
-
-    if orientation == "h":
-        fig.update_layout(
-            yaxis=dict(
-                categoryorder="total ascending"
-            )
-        )
-
-    return style(fig)
 
 # ==========================================================
 # HORIZONTAL BAR
@@ -179,25 +330,24 @@ def horizontal_bar(
 
 ):
 
-
-    return bar(
+    return build_bar(
 
         df,
 
-        x=x,
+        x,
 
-        y=y,
+        y,
 
-        color=color,
+        color,
 
-        text=text,
+        text,
 
-        orientation="h"
+        "h"
 
     )
-
+    
 # ==========================================================
-# DONUT
+# DONUT / PIE
 # ==========================================================
 
 def donut(
@@ -211,30 +361,86 @@ def donut(
 ):
 
     df = clean_chart_data(df)
+
+    params = {
+
+        "data_frame":
+
+            df,
+
+        "values":
+
+            values,
+
+        "names":
+
+            names,
+
+        "hole":
+
+            0.62,
+
+        "color":
+
+            names
+
+    }
+
+    color_map = get_color_map(names)
+
+    if color_map:
+
+        params[
+
+            "color_discrete_map"
+
+        ] = color_map
+
+    else:
+
+        params[
+
+            "color_discrete_sequence"
+
+        ] = CHART_PALETTE
+
     fig = px.pie(
 
-        df,
-
-        values=values,
-
-        names=names,
-
-        hole=0.55,
-
-        color=names,
-
-        color_discrete_map=get_color_map(names)
+        **params
 
     )
 
     fig.update_traces(
 
-        textposition="inside",
+        textposition=
 
-        textinfo="percent+label"
+            "inside",
+
+        textinfo=
+
+            "percent",
+
+        marker=dict(
+
+            line=dict(
+
+                color="white",
+
+                width=2
+
+            )
+
+        ),
+
+        hovertemplate=
+
+            "<b>%{label}</b><br>"
+
+            "%{value} Journals"
+
+            "<extra></extra>"
 
     )
-
     return style(fig)
 
 # ==========================================================
@@ -242,6 +448,7 @@ def donut(
 # ==========================================================
 
 def major_chart(df):
+
 
     fig = horizontal_bar(
 
@@ -255,14 +462,14 @@ def major_chart(df):
 
     )
 
-    # remove legend
 
     fig.update_layout(
 
         showlegend=False
 
     )
-    
+
+
     return fig
 
 # ==========================================================
@@ -322,6 +529,7 @@ def database_chart(df):
 
 def rank_chart(df):
 
+
     return bar(
 
         df,
@@ -330,7 +538,7 @@ def rank_chart(df):
 
         y="Total",
 
-        color="Source",
+        color="Rank",
 
         text="Total"
 
@@ -365,8 +573,8 @@ def database_summary_chart(df):
 
 def scopus_status_chart(df):
 
-
     if "Active or Inactive" not in df.columns:
+
 
         return None
 
@@ -376,7 +584,11 @@ def scopus_status_chart(df):
 
         data["Active or Inactive"]
 
-        .fillna("Not in Scopus")
+        .fillna(
+
+            "Not in Scopus"
+
+        )
 
         .replace(
 
@@ -406,28 +618,15 @@ def scopus_status_chart(df):
 
     ]
 
-    fig = px.pie(
+
+    fig = donut(
 
         summary,
 
-        names="Status",
-
         values="Count",
 
-        hole=0.55,
-
-        color="Status",
-
-        color_discrete_map=SCOPUS_STATUS_COLORS
+        names="Status"
 
     )
 
-    fig.update_traces(
-
-        textposition="inside",
-
-        textinfo="percent+label"
-
-    )
-
-    return style(fig)
+    return fig
