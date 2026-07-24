@@ -175,7 +175,7 @@ def style(fig,show_legend = False):
             x=0,
             bgcolor="rgba(0,0,0,0)",
             font=dict(
-                size=14
+                size=18
             )
 
         )
@@ -185,7 +185,7 @@ def style(fig,show_legend = False):
     fig.update_xaxes(
         title_text="",
         tickfont=dict(
-            size=14
+            size=18
         ),
 
         linecolor=GRID_COLOR,
@@ -201,7 +201,7 @@ def style(fig,show_legend = False):
     fig.update_yaxes(
         title_text="",
         tickfont=dict(
-            size=14
+            size=18
         ),
         
         linecolor=GRID_COLOR,

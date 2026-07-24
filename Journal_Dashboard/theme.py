@@ -37,7 +37,7 @@ CHART_FONT = {
 
     "family": FONT,
 
-    "size": 17
+    "size": 22
 
 }
 
@@ -78,7 +78,7 @@ HOVER_LABEL = dict(
 
         family=FONT,
 
-        size=15,
+        size=20,
 
         color=TEXT_COLOR
 

@@ -24,46 +24,148 @@ def unique_sorted(df, column):
         .astype(str)
         .unique()
     )
+    
+def clean_options(series):
 
+    return (
+        series
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .replace(
+            ["", "nan", "None", "undefined"],
+            None
+        )
+        .dropna()
+        .unique()
+        .tolist()
+    )
+    
+def filter_options(
+    df,
+    column,
+    current_filters={}
+):
+
+    temp = df.copy()
+
+
+    for key,value in current_filters.items():
+
+        if value and key in temp.columns:
+
+            temp = temp[
+                temp[key].isin(value)
+            ]
+
+
+    return sorted(
+        clean_options(
+            temp[column]
+        )
+    )
+    
+def apply_rank_filter(
+    df,
+    ranks
+):
+
+    if not ranks:
+        return df
+
+
+    # หา journal ที่มี rank นี้
+    journal_keep = (
+        df[
+            df["Rank"]
+            .isin(ranks)
+        ]
+        ["Journal Title"]
+        .unique()
+    )
+
+
+    return df[
+        df["Journal Title"]
+        .isin(journal_keep)
+    ]
+    
+def apply_source_filter(
+    df,
+    sources
+):
+
+    if not sources:
+        return df
+
+
+    journal_keep = (
+        df[
+            df["Source"]
+            .isin(sources)
+        ]
+        ["Journal Title"]
+        .unique()
+    )
+
+
+    return df[
+        df["Journal Title"]
+        .isin(journal_keep)
+    ]
 
 # ==========================================================
 # OPTION LIST
 # ==========================================================
 
 def get_major_options(df):
-    return unique_sorted(df, "Major Group")
 
+    return sorted(
+        clean_options(
+            df["Major Group"]
+        )
+    )
 
 def get_area_group_options(df):
-    return unique_sorted(df, "Area Group")
 
+    return sorted(
+        clean_options(
+            df["Area Group"]
+        )
+    )
 
 def get_area_options(df):
-    return unique_sorted(df, "Area")
 
+    return sorted(
+        clean_options(
+            df["Area"]
+        )
+    )
 
 def get_source_options(df):
-    return unique_sorted(df, "Source")
 
+    return sorted(
+        clean_options(
+            df["Source"]
+        )
+    )
 
 def get_rank_options(df):
-    return unique_sorted(df, "Rank")
 
-
+    return sorted(
+        clean_options(
+            df["Rank"]
+        )
+    )
 
 
 def get_dynamic_options(df, column):
 
     return sorted(
-
         df[column]
-
         .dropna()
-
         .astype(str)
-
         .unique()
-
     )
     
     
@@ -72,71 +174,51 @@ def get_dynamic_options(df, column):
 # ==========================================================
 
 def apply_filters(
-
     df,
-
     major_groups=None,
-
     area_groups=None,
-
     areas=None,
-
     sources=None,
-
     ranks=None,
 
-
 ):
-
     temp = df.copy()
-
     if major_groups:
-
         temp = temp[
             temp["Major Group"]
             .isin(major_groups)
         ]
 
     if area_groups:
-
         temp = temp[
             temp["Area Group"]
             .isin(area_groups)
         ]
 
     if areas:
-
         temp = temp[
             temp["Area"]
             .isin(areas)
         ]
 
     if sources:
-
-        temp = temp[
-            temp["Source"]
-            .isin(sources)
-        ]
+        temp = apply_source_filter(
+            temp,
+            sources
+        )
 
     if ranks:
-
-        temp = temp[
-            temp["Rank"]
-            .isin(ranks)
-        ]
-
+        temp = apply_rank_filter(
+            temp,
+            ranks
+        )
 
     return temp
 
-
 def apply_compare_filters(
-
     df,
-
     column,
-
     group1,
-
     group2
 
 ):
@@ -159,77 +241,104 @@ def build_sidebar_filters(df):
 
     st.sidebar.header("Filters")
 
+
+    # -------------------------
+    # Major
+    # -------------------------
+
     major = st.sidebar.multiselect(
 
         "Major Group",
 
-        get_major_options(df)
+        filter_options(
+            df,
+            "Major Group"
+        )
 
     )
 
-    temp = apply_filters(
 
-        df,
-
-        major_groups=major
-
-    )
+    # -------------------------
+    # Area Group
+    # -------------------------
 
     area_group = st.sidebar.multiselect(
 
         "Area Group",
 
-        get_area_group_options(temp)
+        filter_options(
+            df,
+            "Area Group",
+            {
+                "Major Group":major
+            }
+        )
 
     )
 
-    temp = apply_filters(
 
-        temp,
-
-        area_groups=area_group
-
-    )
+    # -------------------------
+    # Area
+    # -------------------------
 
     area = st.sidebar.multiselect(
 
         "Area",
 
-        get_area_options(temp)
+        filter_options(
+            df,
+            "Area",
+            {
+                "Major Group":major,
+                "Area Group":area_group
+            }
+        )
 
     )
 
-    temp = apply_filters(
 
-        temp,
-
-        areas=area
-
-    )
+    # -------------------------
+    # Database
+    # -------------------------
 
     source = st.sidebar.multiselect(
 
         "Database",
 
-        get_source_options(temp)
+        filter_options(
+            df,
+            "Source",
+            {
+                "Major Group":major,
+                "Area Group":area_group,
+                "Area":area
+            }
+        )
 
     )
 
-    temp = apply_filters(
 
-        temp,
-
-        sources=source
-
-    )
+    # -------------------------
+    # Rank
+    # -------------------------
 
     rank = st.sidebar.multiselect(
 
         "Rank",
 
-        get_rank_options(temp)
+        filter_options(
+            df,
+            "Rank",
+            {
+                "Source":source,
+                "Major Group":major,
+                "Area Group":area_group,
+                "Area":area
+            }
+        )
 
     )
+
 
     return {
 
