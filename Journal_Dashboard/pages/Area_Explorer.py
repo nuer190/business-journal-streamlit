@@ -16,6 +16,28 @@ from filters import (
 # ==========================================================
 master, area = load_data()
 
+QUALITY_RANK = {
+
+    "4*": 1,
+
+    "A*": 2,
+    "4": 2,
+    "Q1": 2,
+
+    "A": 3,
+    "3": 3,
+    "Q2": 3,
+
+    "B": 4,
+    "2": 4,
+    "Q3": 4,
+
+    "C": 5,
+    "1": 5,
+    "Q4": 5
+
+}
+
 # ==========================================================
 # PAGE CONFIG
 # ==========================================================
@@ -97,6 +119,40 @@ journal_filter = (
 )
 
 # ==========================================================
+# GET BEST RANK
+# ==========================================================
+
+def get_best_rank(ranks):
+
+    if pd.isna(ranks):
+        return "N/A"
+
+
+    rank_list = [
+        r.strip()
+        for r in ranks.split(",")
+    ]
+
+
+    valid_rank = [
+
+        r for r in rank_list
+
+        if r in QUALITY_RANK
+
+    ]
+
+
+    if not valid_rank:
+        return "N/A"
+
+
+    return min(
+        valid_rank,
+        key=lambda x: QUALITY_RANK[x]
+    )
+
+# ==========================================================
 # GET ALL JOURNAL QUALITY RANK
 # ==========================================================
 
@@ -159,11 +215,17 @@ journal_filter = journal_filter.rename(
     }
 )
 
+journal_filter["Best Rank"] = (
+    journal_filter["Rank Quality"]
+    .apply(get_best_rank)
+)
+
 journal_filter = (
     journal_filter[
         [
             "Journal Title",
             "Publisher",
+            "Best Rank",
             "Rank Quality",
             "ISSN",
             "ISSNOnline"
@@ -191,13 +253,79 @@ else:
     st.write(
         f"Found **{len(journal_filter):,}** journals"
     )
+    
+    st.markdown(
+        """
+        <style>
+
+        [data-testid="stDataFrame"] table {
+
+            font-size:26px;
+
+        }
+
+        [data-testid="stDataFrame"] th {
+
+            font-size:26px !important;
+
+        }
+
+        [data-testid="stDataFrame"] td {
+
+            font-size:25px !important;
+
+        }
+
+        </style>
+        """,
+        unsafe_allow_html=True
+        )
 
     event = st.dataframe(
     journal_filter,
+
     use_container_width=True,
+
     height=400,
+
     hide_index=True,
+
+    column_config={
+
+        "Journal Title": st.column_config.TextColumn(
+            "Journal Title",
+            width="large"
+        ),
+
+        "Publisher": st.column_config.TextColumn(
+            "Publisher",
+            width="large"
+        ),
+
+        "Best Rank": st.column_config.TextColumn(
+            "Best Rank",
+            width="medium"
+        ),
+
+        "Rank Quality": st.column_config.TextColumn(
+            "Rank Quality",
+            width="large"
+        ),
+
+        "ISSN": st.column_config.TextColumn(
+            "ISSN",
+            width="medium"
+        ),
+
+        "ISSNOnline": st.column_config.TextColumn(
+            "ISSNOnline",
+            width="medium"
+        )
+
+    },
+
     on_select="rerun",
+
     selection_mode="single-row"
 )
     
