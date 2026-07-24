@@ -50,10 +50,29 @@ st.set_page_config(
 
 st.title("🗺️ Area Explorer")
 
-st.caption(
-    "Explore Journals by Major Group, Area Group, Area, Source and Rank"
-)
+st.markdown(
+    """
+    <div style="
+        background:#F4F8FC;
+        border-left:5px solid #4F80C0;
+        padding:15px;
+        border-radius:10px;
+        font-size:16px;
+        color:#37474F;
+    ">
+    
+    แสดงรายการวารสารตามฐานข้อมูล 
+    <b>ABDC, Scimago, Scopus และ AJG</b><br>
 
+    🔍 สามารถเลือก Journal และกด 
+    <b>Open Journal Profile</b> เพื่อดูรายละเอียดเพิ่มเติม<br>
+
+    ⭐ <b>Rank Quality</b> แสดง Rank ทั้งหมดของวารสารจากทุกฐานข้อมูลภายใน Area ที่เลือก
+
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 # ==========================================================
 # SESSION STATE
 # ==========================================================
